@@ -1,0 +1,2876 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="入出荷台帳">
+<meta name="theme-color" content="#4FC3F7">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>入出荷台帳</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:calc(16px * var(--ui-scale, 1));height:100%}
+body{font-family:"Noto Sans JP",-apple-system,sans-serif;background:#f4f3ef;color:#1a1a2e;height:100%;overflow:hidden}
+#root{height:100%}
+.hidden{display:none!important}
+.app{max-width:none;width:100%;height:100%;margin:0 auto;display:flex;flex-direction:column;overflow:hidden}
+.demo-banner{background:#b45309;color:#fff;text-align:center;padding:8px 12px;font-size:13px;font-weight:700;letter-spacing:.02em;flex-shrink:0}
+.header{background:#4FC3F7;color:#fff;padding:calc(8px * var(--ui-scale, 1)) calc(14px * var(--ui-scale, 1));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;z-index:30}
+.header-brand{flex-shrink:0;min-width:0}
+.header h1{font-size:calc(16px * var(--ui-scale, 1));font-weight:700}
+.header-sub{font-size:calc(11px * var(--ui-scale, 1));opacity:.85;margin-top:2px}
+.header-tabs{display:flex;align-items:center;gap:4px;flex:1;min-width:0;justify-content:center}
+.header-tab{border:none;border-radius:8px;padding:calc(8px * var(--ui-scale, 1)) calc(14px * var(--ui-scale, 1));background:rgba(255,255,255,.22);color:#fff;font-size:calc(13px * var(--ui-scale, 1));font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.header-tab.active{background:#fff;color:#0288D1}
+.header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0}
+.zoom-controls{display:flex;align-items:center;gap:2px}
+.btn-zoom{min-width:34px;padding:5px 8px;font-size:18px;line-height:1;font-weight:700}
+.btn-fit{min-width:auto;padding:5px 10px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn-fit.active{background:#fff;color:#0288D1}
+.zoom-label{font-size:11px;min-width:38px;text-align:center;opacity:.9}
+.col-mode-controls{display:flex;align-items:center;gap:2px}
+.btn-col-mode{min-width:auto;padding:5px 10px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn-col-mode.active{background:#fff;color:#0288D1}
+.item-list.col-flow{display:flex;flex-direction:row;align-items:flex-start;gap:16px;width:100%;box-sizing:border-box}
+.item-col{display:flex;flex-direction:column;flex:1 1 0;min-width:0}
+.item-col .list-head-unit{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;width:100%;height:var(--head-h,22px);padding:0 5px 2px;font-size:var(--head-fs,12px);font-weight:700;color:#888;text-align:center;box-sizing:border-box;flex-shrink:0;gap:8px}
+.item-col .list-head-unit span:first-child{flex:1 1 0;min-width:0;text-align:left}
+.item-col .list-head-unit span:not(:first-child){flex:0 0 var(--qty-w,72px);width:var(--qty-w,72px)}
+.item-col .item-row{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:8px;width:100%;flex:0 0 var(--row-h,48px);height:var(--row-h,48px);min-height:var(--row-h,48px);max-height:var(--row-h,48px);padding:0 5px;box-sizing:border-box;overflow:hidden;grid-template-columns:none}
+.item-col .item-row > .item-main{flex:1 1 0;min-width:0;max-width:none;overflow:hidden;align-items:center}
+.item-col .item-row > .qty-cell{flex:0 0 var(--qty-w,72px);width:var(--qty-w,72px);max-width:var(--qty-w,72px);height:var(--qty-h,40px);min-height:0;max-height:var(--qty-h,40px);font-size:var(--qty-fs,20px)}
+.item-col .item-row:first-of-type{border-top:1px solid #eceae4}
+.item-col .item-name{font-size:var(--name-fs,18px);line-height:1.1}
+.item-col .item-code{font-size:var(--code-fs,11px)}
+.item-col .qty-cell.empty{font-size:var(--qty-fs,20px)}
+.btn{border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-ghost{background:rgba(255,255,255,.22);color:#fff}
+.btn-primary{background:#e8d5b7;color:#1a1a2e}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.workspace{display:flex;flex:1;min-height:0;overflow:hidden}
+.main{flex:1;min-width:0;min-height:0;padding:calc(10px * var(--ui-scale, 1));display:flex;flex-direction:column;overflow:hidden}
+.main-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.input-layout{display:flex;flex-direction:column;flex:1;min-height:0}
+.input-fixed{flex-shrink:0;margin-bottom:8px}
+.items-scroll{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:10px}
+.scroll-btn{border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a2e;font-size:12px;font-weight:700;padding:4px;cursor:pointer;font-family:inherit;flex-shrink:0}
+.scroll-btn:active{background:#f4f3ef}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:calc(12px * var(--ui-scale, 1));margin-bottom:12px}
+.items-scroll.card{margin-bottom:0;padding:4px 6px 2px;display:flex;flex-direction:column;flex:1;min-height:0}
+.lbl{font-size:12px;color:#666;font-weight:600;margin-bottom:6px;display:block}
+select,input[type=date],input[type=text]{width:100%;padding:10px 12px;border:1px solid #c5d6e4;border-radius:8px;font-size:15px;font-family:inherit;background:#f7fafc;box-sizing:border-box}
+/* 選択マスの薄い色分け（客先=青 / 行=黄 / 検索=緑 / 日付=薄紫） */
+#cust-select,#master-cust-select{background:#e8f3fa;border-color:#9fc4de;color:#1a3a4a}
+#delivery-date{background:#f3eef8;border-color:#c9b8de;color:#3a2a4a}
+#master-item-kana,#item-add-kana,#master-form-search-kana{background:#fff6e0;border-color:#e0c98a;color:#5a4a20}
+#master-item-query,#item-add-query,#master-form-search-query,#item-add-name,#item-add-yomi{background:#eef8f1;border-color:#9ecbb0;color:#1a3a28}
+#master-form-name,#master-form-yomi,#master-form-code,#master-form-group{background:#f7fafc;border-color:#9fc4de}
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item-list{display:flex;flex-direction:column;gap:0}
+.items-panel{display:flex;flex-direction:column;flex:1;min-height:0;gap:3px;--iz:1}
+.item-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:calc(10px * var(--iz));width:100%;box-sizing:border-box;background:#fff;border-bottom:1px solid #eceae4;padding:calc(2px * var(--iz)) calc(5px * var(--iz));border-radius:0}
+.item-row:first-of-type{border-top:1px solid #eceae4}
+.item-row.active{background:#faf9f7;border-bottom-color:#1a1a2e}
+.item-main{display:flex;align-items:baseline;gap:calc(6px * var(--iz));min-width:0;overflow:hidden}
+.item-name{font-size:calc(20px * var(--iz));font-weight:600;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+.item-code{font-size:calc(13px * var(--iz));color:#888;flex-shrink:0;line-height:1}
+.qty-cell{width:calc(72px * var(--iz));box-sizing:border-box;text-align:center;padding:0 calc(3px * var(--iz));border:1px solid #ddd;border-radius:calc(5px * var(--iz));font-size:calc(22px * var(--iz));font-weight:700;background:#faf9f7;cursor:pointer;min-height:calc(40px * var(--iz));height:calc(40px * var(--iz));display:flex;align-items:center;justify-content:center;line-height:1}
+.qty-cell.empty{color:#ccc;font-weight:500;font-size:calc(20px * var(--iz))}
+.qty-cell.in-head::before,.qty-cell.out-head::before{display:block;font-size:calc(13px * var(--iz));font-weight:600;margin-bottom:0;line-height:1}
+.qty-cell.in-col{border-color:#b8dcc8;background:#f6fbf8}
+.qty-cell.out-col{border-color:#d4c4f0;background:#faf7ff}
+.qty-cell.active-in{border-color:#2d6a4f;background:#e8f5ec}
+.qty-cell.active-out{border-color:#5b4b8a;background:#f0ebff}
+.qty-cell.mismatch{color:#c62828;border-color:#c62828;background:#ffebee;font-weight:800}
+.qty-cell.mismatch.active-out{color:#b71c1c;border-color:#b71c1c;background:#ffcdd2}
+.list-head{display:grid;grid-template-columns:minmax(0,1fr) auto auto minmax(0,1fr);align-items:center;gap:calc(10px * var(--iz));width:100%;box-sizing:border-box;padding:0 calc(5px * var(--iz)) calc(3px * var(--iz));font-size:calc(13px * var(--iz));font-weight:700;color:#888;text-align:center;line-height:1.2}
+.list-head span:first-child{text-align:left;padding-left:0;min-width:0}
+.list-head span:not(:first-child){width:calc(72px * var(--iz))}
+.numpad-wrap{width:var(--numpad-w, 280px);flex-shrink:0;background:#fff;border-left:2px solid #1a1a2e;padding:calc(10px * var(--ui-scale, 1)) calc(12px * var(--ui-scale, 1));display:flex;flex-direction:column;justify-content:flex-start;gap:calc(8px * var(--ui-scale, 1));align-self:stretch;overflow:hidden}
+.sidebar-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.sidebar-actions .btn{width:100%;padding:calc(11px * var(--ui-scale, 1));font-size:calc(13px * var(--ui-scale, 1))}
+.btn-memo{background:#f0ebff;color:#5b4b8a;border:none}
+.btn-issue{background:#1a4a62;color:#fff;border:none;position:relative}
+.btn-issue .soon{display:block;font-size:calc(10px * var(--ui-scale, 1));font-weight:600;opacity:.85;margin-top:2px;letter-spacing:.02em}
+.btn-issue:disabled{opacity:.72;cursor:not-allowed}
+.numpad-target{font-size:calc(12px * var(--ui-scale, 1));color:#666;text-align:center;line-height:1.5;min-height:calc(32px * var(--ui-scale, 1));display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.numpad-target strong{color:#1a1a2e}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(7px * var(--ui-scale, 1))}
+.numpad-wrap.disabled .nk{opacity:.45}
+.numpad-wrap.disabled .nk:active{background:#f4f3ef}
+.nk{border:none;border-radius:10px;padding:calc(14px * var(--ui-scale, 1)) 0;font-size:calc(22px * var(--ui-scale, 1));font-weight:700;cursor:pointer;font-family:inherit;background:#f4f3ef;color:#1a1a2e}
+.nk:active{background:#e0ddd5}
+.nk.del{background:#fff3e0;color:#c62828}
+.nk.enter{background:#1a1a2e;color:#e8d5b7;grid-column:span 2}
+/* 縦置きのときだけテンキーを下へ。横置きは常に左右分割 */
+@media (max-width:900px) and (orientation: portrait){
+  .workspace{flex-direction:column}
+  .main{flex:1;min-height:0}
+  .numpad-wrap{width:100%;flex-shrink:0;border-left:none;border-top:2px solid #1a1a2e;padding:12px;align-self:auto}
+  .nk{padding:14px 0;font-size:20px}
+}
+@media (orientation: landscape){
+  .app{max-width:none}
+  .input-fixed{margin-bottom:6px}
+  .sync-note{display:none}
+}
+.history-list{display:flex;flex-direction:column;gap:8px}
+.history-table{width:100%;border-collapse:collapse;font-size:14px;background:#fff;border:1px solid #e8e6e0;border-radius:10px;overflow:hidden}
+.history-table th,.history-table td{padding:10px 8px;border-bottom:1px solid #eceae4;text-align:left;vertical-align:middle}
+.history-table th{font-size:11px;color:#888;font-weight:700;background:#faf9f7}
+.history-table th.num,.history-table td.num{text-align:right;font-weight:600;width:48px}
+.history-table tr:last-child td{border-bottom:none}
+.history-row{cursor:pointer;font-family:inherit}
+.history-row:active{background:#faf9f7}
+.history-table .col-date{font-weight:700;white-space:nowrap;width:96px}
+.history-table .col-customer{max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-note{font-size:11px;color:#888;margin-bottom:8px}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px}
+.badge-sent{background:#e8f5ec;color:#2d6a4f}
+.badge-draft{background:#fff3e0;color:#e65100}
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.detail-panel{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:720px;max-height:85vh;overflow:auto;padding:16px}
+.detail-panel h2{font-size:18px;margin-bottom:4px}
+.detail-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+.detail-table th,.detail-table td{padding:8px 6px;border-bottom:1px solid #eee;text-align:left}
+.detail-table th{font-size:11px;color:#888}
+.detail-table .num{text-align:right;font-weight:600}
+.memo-note{font-size:12px;color:#666;background:#f7f6f2;border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.5}
+.memo-table{width:100%;border-collapse:collapse;font-size:15px}
+.memo-table th,.memo-table td{padding:10px 8px;border-bottom:1px solid #eee}
+.memo-table th{font-size:11px;color:#888;text-align:left}
+.memo-table .qty{text-align:right;font-weight:700;font-size:18px;color:#5b4b8a}
+.memo-actions{display:flex;gap:8px;margin-top:16px}
+.memo-actions .btn{flex:1;padding:12px}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,#1a1a2e,#2d3561)}
+.login-card{background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 16px 48px rgba(0,0,0,.25)}
+.login-card h1{font-size:20px;margin-bottom:4px;color:#1a1a2e}
+.login-card p{font-size:13px;color:#666;margin-bottom:20px}
+.login-card input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;margin-bottom:12px;font-family:inherit}
+.login-card .btn-ghost{background:#f4f3ef;color:#1a1a2e;border:1px solid #ddd}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#2d6a4f;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:60;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.toast.error{background:#c62828}
+.empty{text-align:center;padding:40px 16px;color:#888;font-size:14px}
+.sync-note{font-size:11px;color:#888;text-align:center;margin-top:8px}
+.master-subtabs{display:flex;gap:8px;margin-bottom:12px}
+.master-subtab{flex:1;padding:10px;border:1px solid #c5d6e4;border-radius:8px;background:#eef4f8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#456}
+.master-subtab[data-master-section="customers"]{background:#e8f3fa;border-color:#9fc4de;color:#1a4a62}
+.master-subtab[data-master-section="groups"]{background:#f3eef8;border-color:#c9b8de;color:#4a3a62}
+.master-subtab[data-master-section="items"]{background:#eef8f1;border-color:#9ecbb0;color:#1a4a32}
+.master-subtab.active{background:#1a1a2e !important;color:#e8d5b7 !important;border-color:#1a1a2e !important}
+.master-toolbar{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.master-toolbar select{flex:1;padding:10px;border:1px solid #9fc4de;border-radius:8px;font-size:14px;font-family:inherit;background:#e8f3fa}
+.master-list{display:flex;flex-direction:column;gap:6px}
+.master-list.cols{display:grid;grid-template-columns:repeat(var(--master-cols,3),minmax(0,1fr));gap:8px;--mz:1}
+.master-list.cols .master-empty{grid-column:1/-1}
+.master-list.cols .master-row{flex-direction:column;align-items:stretch;min-height:100%;box-sizing:border-box}
+.master-list.cols .master-row-actions{justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
+.master-list.cols .master-row-title{font-size:calc(15px * var(--mz,1))}
+.master-list.cols .master-row-meta{font-size:calc(11px * var(--mz,1))}
+.master-list.cols .master-btn{font-size:calc(12px * var(--mz,1));padding:calc(6px * var(--mz,1)) calc(10px * var(--mz,1))}
+.master-view-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
+.master-view-controls .row-btns,.master-view-controls .zoom-btns{display:flex;align-items:center;gap:4px}
+.master-view-controls .btn-mcol,.master-view-controls .btn-mzoom{min-width:auto;padding:6px 10px;font-size:12px;font-weight:700;border:1px solid #9ecbb0;border-radius:8px;background:#eef8f1;color:#1a4a32;cursor:pointer;font-family:inherit}
+.master-view-controls .btn-mcol.active{background:#1a4a32;color:#fff;border-color:#1a4a32}
+.master-view-controls .mzoom-label{font-size:12px;font-weight:700;color:#1a4a32;min-width:3.2em;text-align:center}
+.master-row{display:flex;align-items:center;gap:8px;background:#fbfcfd;border:1px solid #dce6ee;border-radius:8px;padding:10px 12px}
+.master-row-body{flex:1;min-width:0}
+.master-row-title{font-size:15px;font-weight:700;word-break:break-all}
+.master-row-meta{font-size:11px;color:#888;margin-top:2px}
+.master-row-actions{display:flex;gap:6px;flex-shrink:0}
+.master-btn{border:none;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.master-btn-edit{background:#f4f3ef;color:#1a1a2e}
+.master-btn-del{background:#fff3e0;color:#c62828}
+.master-btn-move{background:#eef2f7;color:#1a1a2e;min-width:34px;padding:6px 8px}
+.master-btn-move:disabled{opacity:.35;cursor:not-allowed}
+.master-group{margin-top:14px}
+.master-group:first-child{margin-top:0}
+.master-group-title{font-size:12px;font-weight:700;color:#5b4b8a;background:#f0ebff;border-radius:8px;padding:6px 10px;margin-bottom:6px}
+.master-toolbar-actions{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.master-toolbar-actions .master-add{margin:0;flex:1;min-width:140px}
+.master-toolbar-actions .btn{padding:11px 12px;font-size:12px;background:#f3eef8;border:1px solid #c9b8de;color:#4a3a62}
+.master-add{width:100%;padding:11px;border:1px dashed #7eb6d9;border-radius:8px;background:#e8f3fa;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#0277a8}
+.master-form-panel{background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:88vh;overflow:auto;padding:20px}
+.master-form-panel h3{font-size:17px;margin-bottom:14px}
+.master-form-panel input,.master-form-panel select{width:100%;padding:11px;border:1px solid #c5d6e4;border-radius:8px;font-size:15px;font-family:inherit;margin-bottom:10px;box-sizing:border-box;background:#f7fafc}
+.master-form-search-list{display:flex;flex-direction:column;gap:6px;max-height:28vh;overflow:auto;margin:0 0 12px}
+.master-form-actions{display:flex;gap:8px;margin-top:6px}
+.master-form-actions .btn{flex:1;padding:12px}
+.item-add-btn{width:100%;margin-top:8px;padding:10px;border:1px dashed #5b9bd5;border-radius:8px;background:#f0f7fc;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:#0288D1}
+.item-add-btn:disabled{opacity:.4;cursor:not-allowed}
+.item-add-panel{background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:85vh;overflow:auto;padding:20px}
+.item-add-tabs{display:flex;gap:6px;margin-bottom:12px}
+.item-add-tab{flex:1;padding:10px;border:1px solid #9fc4de;border-radius:8px;background:#e8f3fa;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:#1a4a62}
+.item-add-tab.active{background:#0288D1;color:#fff;border-color:#0288D1}
+.item-add-search-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:40vh;overflow:auto}
+.item-add-hit{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid #b8d4e8;border-radius:8px;background:#f0f7fc;cursor:pointer;font-family:inherit;text-align:left;width:100%}
+.item-add-hit:active{background:#dceef8}
+.item-add-hit-title{font-size:14px;font-weight:700}
+.item-add-hit-meta{font-size:11px;color:#888;margin-top:2px}
+.item-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:6px;background:#fff3e0;color:#e65100;vertical-align:middle}
+.item-row-remove{border:none;background:#fff3e0;color:#c62828;border-radius:6px;padding:4px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="root"><div class="login-wrap"><div class="login-card"><h1>入出荷台帳</h1><p>読込中…</p></div></div></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, limit, getDocs, where, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBRvXOmLV_iU9ybzJrquJSglUYfEON_CsM",
+  authDomain: "pourvoussystem.firebaseapp.com",
+  projectId: "pourvoussystem",
+  storageBucket: "pourvoussystem.firebasestorage.app",
+  messagingSenderId: "505648740877",
+  appId: "1:505648740877:web:f5b0c3a950866ce74bb344"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const SESSION_DAY_KEY = "lg_sessionDay";
+const HISTORY_MONTHS = 2;
+const MASTER_CUST_KEY = "lg_master_customers";
+const MASTER_ITEMS_KEY = "lg_master_items";
+const MASTER_GROUP_KEY = "lg_master_groups";
+// デモURL: https://pv-dn.github.io/primus-ledger-demo/（旧: purims-ledger-demo も可）
+const IS_DEMO = /\/(?:primus|purims)-ledger-demo(\/|$)/i.test(location.pathname) || /(?:^|[?&])demo=1(?:&|$)/.test(location.search);
+/** お試しURLは trial、仮運用/ローカル試用は demo（本番クラウドと分離） */
+const DEMO_STORE = IS_DEMO ? "trial" : "demo";
+const MASTER_CUST_KEY_DEMO = `lg_master_customers_${DEMO_STORE}`;
+const MASTER_ITEMS_KEY_DEMO = `lg_master_items_${DEMO_STORE}`;
+const MASTER_GROUP_KEY_DEMO = `lg_master_groups_${DEMO_STORE}`;
+const LEDGERS_KEY_DEMO = `lg_ledgers_${DEMO_STORE}`;
+/** 伝票デモと共有（同一オリジン localStorage） */
+const BRIDGE_V14_KEY = "purims_demo_v14";
+const BRIDGE_REV_KEY = "purims_demo_bridge_rev";
+const BRIDGE_ISSUE_KEY = "purims_demo_issue_pending";
+const SLIP_DEMO_URL = "https://pv-dn.github.io/primus-demo/?from=ledger";
+if (IS_DEMO) {
+  document.title = "【デモ】入出荷台帳";
+}
+
+function sessionDayKey() {
+  return todayInput();
+}
+
+function markSessionDay() {
+  try { localStorage.setItem(SESSION_DAY_KEY, sessionDayKey()); } catch {}
+}
+
+function clearSessionDay() {
+  try { localStorage.removeItem(SESSION_DAY_KEY); } catch {}
+}
+
+async function endWorkDay() {
+  clearSessionDay();
+  state.demoMode = false;
+  state.customer = "";
+  state.items = [];
+  state.userShortId = "";
+  state.userDisplayName = "";
+  await signOut(auth);
+}
+
+const IS_LOCAL = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+/** 運用開始まで true（ログイン省略・端末内保存）。本番ログイン必須にするときは false に戻す */
+const SKIP_LOGIN = true;
+/** ログイン省略で端末内保存にする条件（お試しURL含む） */
+const USE_LOCAL_DEMO = IS_DEMO || IS_LOCAL || SKIP_LOGIN;
+const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const IS_STANDALONE = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+/** 想定は PC / タブレット。マスタはどちらでもフル編集可 */
+function canMasterFullEdit() {
+  return true;
+}
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  updateInstallUi();
+});
+
+function updateInstallUi() {
+  const show = !IS_STANDALONE && (deferredInstallPrompt || IS_IOS);
+  document.querySelectorAll(".install-btn").forEach(btn => {
+    btn.classList.toggle("hidden", !show);
+    btn.textContent = IS_IOS && !deferredInstallPrompt ? "ホーム画面に追加" : "アプリをインストール";
+  });
+}
+
+async function promptInstall() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    updateInstallUi();
+    return;
+  }
+  toast("ブラウザの共有メニューから「ホーム画面に追加」を選んでください");
+}
+
+function bindInstallButtons() {
+  document.querySelectorAll(".install-btn").forEach(btn => {
+    btn.onclick = () => promptInstall();
+  });
+  updateInstallUi();
+}
+
+function registerServiceWorkerLater() {
+  if (!("serviceWorker" in navigator)) return;
+  const run = () => navigator.serviceWorker.register("./sw.js?v=22", { updateViaCache: "none" }).catch(() => {});
+  if ("requestIdleCallback" in window) requestIdleCallback(run, { timeout: 5000 });
+  else setTimeout(run, 3000);
+}
+
+const DEMO_CUSTOMERS = [
+  { id: "D01", name: "客先A", group: "グループ1" },
+  { id: "D02", name: "客先B", group: "グループ2" },
+  { id: "D03", name: "客先C", group: "グループ3" }
+];
+
+const UNGROUPED_LABEL = "未分類";
+
+function normalizeCustomer(c) {
+  return {
+    id: c?.id || "",
+    name: (c?.name || "").trim(),
+    group: (c?.group || "").trim()
+  };
+}
+
+function customerGroupName(c) {
+  return (c?.group || "").trim() || UNGROUPED_LABEL;
+}
+
+function normalizeGroupOrder(list) {
+  const seen = new Set();
+  const out = [];
+  for (const raw of Array.isArray(list) ? list : []) {
+    const name = String(raw || "").trim();
+    if (!name || name === UNGROUPED_LABEL || seen.has(name)) continue;
+    seen.add(name);
+    out.push(name);
+  }
+  return out;
+}
+
+function syncGroupOrderFromCustomers() {
+  const found = new Set();
+  for (const c of state.customers) {
+    const g = (c.group || "").trim();
+    if (g) found.add(g);
+  }
+  const next = normalizeGroupOrder(state.groupOrder);
+  for (const g of found) {
+    if (!next.includes(g)) next.push(g);
+  }
+  state.groupOrder = next;
+}
+
+function managedGroups() {
+  syncGroupOrderFromCustomers();
+  return state.groupOrder.map(name => ({
+    name,
+    count: state.customers.filter(c => (c.group || "").trim() === name).length
+  }));
+}
+
+function existingCustomerGroups() {
+  return managedGroups().map(g => g.name);
+}
+
+function customersGrouped() {
+  syncGroupOrderFromCustomers();
+  const map = new Map();
+  for (const c of state.customers) {
+    const g = customerGroupName(c);
+    if (!map.has(g)) map.set(g, []);
+    map.get(g).push(c);
+  }
+  const keys = [];
+  for (const g of state.groupOrder) {
+    if (map.has(g)) keys.push(g);
+  }
+  for (const g of map.keys()) {
+    if (g !== UNGROUPED_LABEL && !keys.includes(g)) keys.push(g);
+  }
+  if (map.has(UNGROUPED_LABEL)) keys.push(UNGROUPED_LABEL);
+  return keys.map(group => ({ group, customers: map.get(group) || [] }));
+}
+
+function renderCustomerSelectOptions(selected = "") {
+  const groups = customersGrouped();
+  const hasNamedGroup = groups.some(g => g.group !== UNGROUPED_LABEL);
+  if (!hasNamedGroup) {
+    return state.customers.map(c =>
+      `<option value="${esc(c.name)}"${selected === c.name ? " selected" : ""}>${esc(c.name)}</option>`
+    ).join("");
+  }
+  return groups.map(({ group, customers }) =>
+    `<optgroup label="${esc(group)}">${customers.map(c =>
+      `<option value="${esc(c.name)}"${selected === c.name ? " selected" : ""}>${esc(c.name)}</option>`
+    ).join("")}</optgroup>`
+  ).join("");
+}
+
+async function moveCustomer(name, dir) {
+  if (!canMasterFullEdit()) return;
+  const i = state.customers.findIndex(c => c.name === name);
+  if (i < 0) return;
+  const group = customerGroupName(state.customers[i]);
+  let j = i + dir;
+  while (j >= 0 && j < state.customers.length) {
+    if (customerGroupName(state.customers[j]) === group) break;
+    j += dir;
+  }
+  if (j < 0 || j >= state.customers.length) return;
+  const item = state.customers.splice(i, 1)[0];
+  state.customers.splice(j, 0, item);
+  try {
+    await persistLedgerMaster();
+    render();
+  } catch (e) {
+    console.error(e);
+    toast("並び替えに失敗しました", "error");
+  }
+}
+
+async function sortCustomersByName() {
+  if (!canMasterFullEdit()) return;
+  const groups = customersGrouped();
+  state.customers = groups.flatMap(({ customers }) =>
+    [...customers].sort((a, b) => a.name.localeCompare(b.name, "ja"))
+  );
+  try {
+    await persistLedgerMaster();
+    toast("名前順に並べ替えました");
+    render();
+  } catch (e) {
+    console.error(e);
+    toast("並び替えに失敗しました", "error");
+  }
+}
+
+function openMasterGroupForm(mode, name = "") {
+  if (!canMasterFullEdit()) {
+    toast("グループの編集はPCまたはタブレットから行ってください", "error");
+    return;
+  }
+  state.masterForm = {
+    kind: "group",
+    mode,
+    name,
+    oldName: mode === "edit" ? name : ""
+  };
+  render();
+}
+
+async function moveGroup(name, dir) {
+  if (!canMasterFullEdit()) return;
+  syncGroupOrderFromCustomers();
+  const i = state.groupOrder.indexOf(name);
+  if (i < 0) return;
+  const j = i + dir;
+  if (j < 0 || j >= state.groupOrder.length) return;
+  const item = state.groupOrder.splice(i, 1)[0];
+  state.groupOrder.splice(j, 0, item);
+  try {
+    await persistLedgerMaster();
+    render();
+  } catch (e) {
+    console.error(e);
+    toast("並び替えに失敗しました", "error");
+  }
+}
+
+async function deleteMasterGroup(name) {
+  if (!canMasterFullEdit()) return;
+  const count = state.customers.filter(c => (c.group || "").trim() === name).length;
+  const msg = count
+    ? `グループ「${name}」を削除しますか？\n所属する客先 ${count} 件は「未分類」になります。`
+    : `グループ「${name}」を削除しますか？`;
+  if (!confirm(msg)) return;
+  state.customers = state.customers.map(c =>
+    (c.group || "").trim() === name ? { ...c, group: "" } : c
+  );
+  state.groupOrder = state.groupOrder.filter(g => g !== name);
+  try {
+    await persistLedgerMaster();
+    toast("グループを削除しました");
+    render();
+  } catch (e) {
+    console.error(e);
+    toast("削除に失敗しました", "error");
+  }
+}
+
+const DEMO_PRICES = [
+  { customer: "客先A", code: "N001", name: "作業着（上）", yomi: "さぎょうぎうえ" },
+  { customer: "客先A", code: "N002", name: "作業着（下）", yomi: "さぎょうぎした" },
+  { customer: "客先A", code: "N003", name: "エプロン（短）", yomi: "えぷろんみじか" },
+  { customer: "客先A", code: "N004", name: "エプロン（長）", yomi: "えぷろんなが" },
+  { customer: "客先A", code: "N005", name: "タオル（大）", yomi: "たおるだい" },
+  { customer: "客先A", code: "N006", name: "タオル（中）", yomi: "たおるちゅう" },
+  { customer: "客先A", code: "N007", name: "タオル（小）", yomi: "たおるしょう" },
+  { customer: "客先A", code: "N008", name: "手袋", yomi: "てぶくろ" },
+  { customer: "客先A", code: "N009", name: "帽子", yomi: "ぼうし" },
+  { customer: "客先A", code: "N010", name: "マスク", yomi: "ますく" },
+  { customer: "客先A", code: "N011", name: "白衣（上）", yomi: "はくいうえ" },
+  { customer: "客先A", code: "N012", name: "白衣（下）", yomi: "はくいした" },
+  { customer: "客先A", code: "N013", name: "ベスト", yomi: "べすと" },
+  { customer: "客先A", code: "N014", name: "防寒ジャンパー", yomi: "ぼうかんじゃんぱー" },
+  { customer: "客先A", code: "N015", name: "ズボン", yomi: "ずぼん" },
+  { customer: "客先A", code: "N016", name: "シャツ（半袖）", yomi: "しゃつはんそで" },
+  { customer: "客先A", code: "N017", name: "シャツ（長袖）", yomi: "しゃつながそで" },
+  { customer: "客先A", code: "N018", name: "ポロシャツ", yomi: "ぽろしゃつ" },
+  { customer: "客先A", code: "N019", name: "クリーニングバッグ", yomi: "くりーにんぐばっぐ" },
+  { customer: "客先A", code: "N020", name: "ネーム札", yomi: "ねーむふだ" },
+  { customer: "客先A", code: "N021", name: "腕章", yomi: "わんしょう" },
+  { customer: "客先A", code: "N022", name: "腰巻き", yomi: "こしまき" },
+  { customer: "客先A", code: "N023", name: "三角巾", yomi: "さんかくきん" },
+  { customer: "客先A", code: "N024", name: "靴下", yomi: "くつした" },
+  { customer: "客先A", code: "N025", name: "軍手", yomi: "ぐんて" },
+  { customer: "客先B", code: "N001", name: "コックコート", yomi: "こっくこーと" },
+  { customer: "客先B", code: "N002", name: "前掛け（短）", yomi: "まえかけみじか" },
+  { customer: "客先B", code: "N003", name: "前掛け（長）", yomi: "まえかけなが" },
+  { customer: "客先B", code: "N004", name: "ナプキン", yomi: "なぷきん" },
+  { customer: "客先B", code: "N005", name: "テーブルクロス", yomi: "てーぶるくろす" },
+  { customer: "客先B", code: "N006", name: "ランチョンマット", yomi: "らんちょんまっと" },
+  { customer: "客先B", code: "N007", name: "座席カバー", yomi: "ざせきかばー" },
+  { customer: "客先B", code: "N008", name: "厨房タオル", yomi: "ちゅうぼうたおる" },
+  { customer: "客先B", code: "N009", name: "ダスター", yomi: "だすたー" },
+  { customer: "客先B", code: "N010", name: "三角巾", yomi: "さんかくきん" },
+  { customer: "客先B", code: "N011", name: "ハンバーガー帽", yomi: "はんばーがーぼう" },
+  { customer: "客先B", code: "N012", name: "ホールエプロン", yomi: "ほーるえぷろん" },
+  { customer: "客先B", code: "N013", name: "バンダナ", yomi: "ばんだな" },
+  { customer: "客先B", code: "N014", name: "ふきん", yomi: "ふきん" },
+  { customer: "客先B", code: "N015", name: "厨房靴", yomi: "ちゅうぼうぐつ" },
+  { customer: "客先C", code: "N001", name: "患者着（上）", yomi: "かんじゃぎうえ" },
+  { customer: "客先C", code: "N002", name: "患者着（下）", yomi: "かんじゃぎした" },
+  { customer: "客先C", code: "N003", name: "看護師白衣", yomi: "かんごしはくい" },
+  { customer: "客先C", code: "N004", name: "看護師ズボン", yomi: "かんごしずぼん" },
+  { customer: "客先C", code: "N005", name: "スクラブ（上）", yomi: "すくらぶうえ" },
+  { customer: "客先C", code: "N006", name: "スクラブ（下）", yomi: "すくらぶした" },
+  { customer: "客先C", code: "N007", name: "ガウン", yomi: "がうん" },
+  { customer: "客先C", code: "N008", name: "シーツ（シングル）", yomi: "しーつしんぐる" },
+  { customer: "客先C", code: "N009", name: "シーツ（ダブル）", yomi: "しーつだぶる" },
+  { customer: "客先C", code: "N010", name: "枕カバー", yomi: "まくらかばー" },
+  { customer: "客先C", code: "N011", name: "バスタオル", yomi: "ばすたおる" },
+  { customer: "客先C", code: "N012", name: "フェイスタオル", yomi: "ふぇいすたおる" },
+  { customer: "客先C", code: "N013", name: "バスマット", yomi: "ばすまっと" },
+  { customer: "客先C", code: "N014", name: "カーテン", yomi: "かーてん" },
+  { customer: "客先C", code: "N015", name: "オペ着", yomi: "おぺぎ" },
+  { customer: "客先C", code: "N016", name: "帽子（手術用）", yomi: "ぼうししゅじゅつよう" },
+  { customer: "客先C", code: "N017", name: "マスク（使い捨て）", yomi: "ますくつかいすて" },
+  { customer: "客先C", code: "N018", name: "足袋", yomi: "たび" }
+];
+
+/** 試用・仮運用で履歴が空のときだけ入れる見本台帳 */
+function demoDateOffset(daysAgo) {
+  const d = new Date();
+  d.setHours(12, 0, 0, 0);
+  d.setDate(d.getDate() - daysAgo);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function demoLedgerItems(customer, picks) {
+  const byCode = new Map(
+    DEMO_PRICES.filter(p => p.customer === customer).map(p => [p.code, p])
+  );
+  return picks.map(([code, inQty, outQty]) => {
+    const p = byCode.get(code) || { code, name: code };
+    return { code: p.code, name: p.name, inQty, outQty };
+  });
+}
+
+function buildDemoLedgers() {
+  const base = Date.now();
+  return [
+    {
+      id: base - 3,
+      customer: "客先A",
+      deliveryDate: demoDateOffset(1),
+      items: demoLedgerItems("客先A", [
+        ["N001", 20, 18], ["N002", 20, 18], ["N004", 8, 8], ["N005", 30, 28], ["N025", 40, 40]
+      ]),
+      createdAt: new Date(base - 3 * 3600000).toISOString(),
+      createdBy: "",
+      createdByEmail: "見本データ"
+    },
+    {
+      id: base - 2,
+      customer: "客先B",
+      deliveryDate: demoDateOffset(3),
+      items: demoLedgerItems("客先B", [
+        ["N001", 6, 6], ["N003", 10, 9], ["N004", 50, 48], ["N008", 20, 20], ["N012", 4, 4]
+      ]),
+      createdAt: new Date(base - 2 * 86400000).toISOString(),
+      createdBy: "",
+      createdByEmail: "見本データ"
+    },
+    {
+      id: base - 1,
+      customer: "客先C",
+      deliveryDate: demoDateOffset(5),
+      items: demoLedgerItems("客先C", [
+        ["N001", 15, 12], ["N002", 15, 12], ["N003", 8, 8], ["N008", 25, 24], ["N011", 40, 40]
+      ]),
+      createdAt: new Date(base - 5 * 86400000).toISOString(),
+      createdBy: "",
+      createdByEmail: "見本データ"
+    }
+  ];
+}
+
+function ensureDemoLedgers() {
+  if (!state.demoMode) return;
+  if (IS_DEMO) return; // 伝票デモ連動時は見本履歴なし
+  if (state.ledgers.length) return;
+  state.ledgers = applyLedgerRetention(buildDemoLedgers());
+  cacheLedgers();
+}
+
+function slipV14FromLedger() {
+  const groupNames = [...(state.groupOrder || [])];
+  for (const c of state.customers) {
+    const g = (c.group || "").trim();
+    if (g && !groupNames.includes(g)) groupNames.push(g);
+  }
+  const colors = ["#185fa5", "#0f6e56", "#854f0b", "#993556", "#534ab7", "#993c1d", "#3b6d11"];
+  const groups = groupNames.map((name, i) => ({ id: "lg" + (i + 1), name, color: colors[i % colors.length] }));
+  const groupIdByName = Object.fromEntries(groups.map(g => [g.name, g.id]));
+  const clients = {};
+  const clientGroups = {};
+  for (const c of state.customers) {
+    clients[c.name] = { items: [] };
+    const g = (c.group || "").trim();
+    if (g && groupIdByName[g]) clientGroups[c.name] = groupIdByName[g];
+  }
+  const productsMap = new Map();
+  for (const p of state.prices) {
+    if (!p.customer) continue;
+    if (!clients[p.customer]) clients[p.customer] = { items: [] };
+    if (!clients[p.customer].items.some(x => x.code === p.code)) {
+      clients[p.customer].items.push({ code: p.code, name: p.name });
+    }
+    if (p.code && !productsMap.has(p.code)) {
+      productsMap.set(p.code, { code: p.code, name: p.name, yomi: p.yomi || "" });
+    }
+  }
+  let prev = {};
+  try { prev = JSON.parse(localStorage.getItem(BRIDGE_V14_KEY) || "{}"); } catch {}
+  return {
+    clients,
+    cycles: prev.cycles || {},
+    products: [...productsMap.values()],
+    groups,
+    clientGroups,
+    clientOrder: prev.clientOrder || {},
+    closing: prev.closing || {},
+    minCharge: prev.minCharge || {},
+    deliveryFee: prev.deliveryFee || {},
+    packagingFee: prev.packagingFee || {},
+    parkingEnabled: prev.parkingEnabled || {},
+    slipCheckedThrough: prev.slipCheckedThrough || "",
+    slipCheckedThroughByClosing: prev.slipCheckedThroughByClosing || {},
+    slipCheckedAtByClosing: prev.slipCheckedAtByClosing || {},
+    slipIssuedAckIds: prev.slipIssuedAckIds || {}
+  };
+}
+
+function applySlipV14ToLedger(d) {
+  if (!d || !d.clients) return false;
+  const groupIdToName = {};
+  (d.groups || []).forEach(g => { if (g && g.id) groupIdToName[g.id] = g.name || g.id; });
+  const customers = [];
+  const prices = [];
+  let i = 0;
+  for (const [name, cl] of Object.entries(d.clients)) {
+    i += 1;
+    const gid = (d.clientGroups || {})[name];
+    const group = gid ? (groupIdToName[gid] || "") : "";
+    customers.push({ id: String(i).padStart(3, "0"), name, group });
+    for (const it of (cl.items || [])) {
+      prices.push({
+        customer: name,
+        code: it.code || "",
+        name: it.name || "",
+        yomi: it.yomi || ""
+      });
+    }
+  }
+  state.customers = customers.map(normalizeCustomer).filter(c => c.name);
+  state.prices = normalizeMasterItems(prices);
+  state.groupOrder = normalizeGroupOrder((d.groups || []).map(g => g.name));
+  syncGroupOrderFromCustomers();
+  return true;
+}
+
+function pushMastersToSlipBridge() {
+  if (!IS_DEMO) return;
+  try {
+    localStorage.setItem(BRIDGE_V14_KEY, JSON.stringify(slipV14FromLedger()));
+    localStorage.setItem(BRIDGE_REV_KEY, String(Date.now()));
+  } catch (e) { console.warn(e); }
+}
+
+function pullMastersFromSlipBridge() {
+  if (!IS_DEMO) return false;
+  try {
+    const raw = localStorage.getItem(BRIDGE_V14_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d.clients || !Object.keys(d.clients).length) return "empty";
+    applySlipV14ToLedger(d);
+    cacheLedgerMaster();
+    return true;
+  } catch (e) {
+    console.warn(e);
+    return false;
+  }
+}
+
+function issueToSlipDemo() {
+  if (!IS_DEMO) {
+    toast("伝票発行は準備中です。当面は「伝票入力メモ」から転記してください");
+    return;
+  }
+  applyBuffer();
+  if (!state.customer) { toast("客先を選択してください", "error"); return; }
+  const items = state.items
+    .filter(it => Number(it.outQty) > 0)
+    .map(it => ({ code: it.code, name: it.name, qty: Number(it.outQty) }));
+  if (!items.length) { toast("「出」の数量を入力してください", "error"); return; }
+  pushMastersToSlipBridge();
+  try {
+    localStorage.setItem(BRIDGE_ISSUE_KEY, JSON.stringify({
+      client: state.customer,
+      deliveryDate: state.deliveryDate || todayInput(),
+      items,
+      at: new Date().toISOString()
+    }));
+  } catch (e) {
+    toast("伝票への受け渡しに失敗しました", "error");
+    return;
+  }
+  window.open(SLIP_DEMO_URL, "_blank");
+  toast("伝票デモを開きました（ログイン: demo1234）");
+}
+
+const ZOOM_KEY = "lg_itemZoom";
+const ZOOM_MIN = 0.7;
+const ZOOM_MAX = 1.5;
+const ZOOM_STEP = 0.1;
+const ITEM_COLS_KEY = "lg_itemCols";
+const ITEM_COLS_OPTIONS = [2, 3, 4];
+const MASTER_ITEM_COLS_KEY = "lg_masterItemCols";
+const MASTER_ITEM_ZOOM_KEY = "lg_masterItemZoom";
+/** 2列表示で画面に収める基準行数（タブレット高さに合わせて行高を決める） */
+const BASE_VISIBLE_ROWS = 15;
+
+function loadMasterItemCols() {
+  const v = parseInt(localStorage.getItem(MASTER_ITEM_COLS_KEY), 10);
+  return ITEM_COLS_OPTIONS.includes(v) ? v : 3;
+}
+
+function setMasterItemCols(cols) {
+  const n = Number(cols);
+  if (!ITEM_COLS_OPTIONS.includes(n)) return;
+  if (state.masterItemCols === n) return;
+  state.masterItemCols = n;
+  localStorage.setItem(MASTER_ITEM_COLS_KEY, String(n));
+  render();
+}
+
+function loadMasterItemZoom() {
+  const v = parseFloat(localStorage.getItem(MASTER_ITEM_ZOOM_KEY));
+  return Number.isFinite(v) ? Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, v)) : 1;
+}
+
+function setMasterItemZoom(next) {
+  state.masterItemZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(next * 100) / 100));
+  localStorage.setItem(MASTER_ITEM_ZOOM_KEY, String(state.masterItemZoom));
+  render();
+}
+
+function loadItemCols() {
+  const v = parseInt(localStorage.getItem(ITEM_COLS_KEY), 10);
+  return ITEM_COLS_OPTIONS.includes(v) ? v : 2;
+}
+
+function setItemCols(cols) {
+  const n = Number(cols);
+  if (!ITEM_COLS_OPTIONS.includes(n)) return;
+  if (state.itemCols === n) {
+    applyItemColLayout();
+    return;
+  }
+  state.itemCols = n;
+  localStorage.setItem(ITEM_COLS_KEY, String(n));
+  render();
+  toast(`${n}列表示に切り替えました`);
+}
+
+function itemLayoutMeta(n = state.items.length) {
+  const colMax = Number(state.itemCols) || 3;
+  if (n <= 0) return { rows: 0, cols: 0, colMax };
+  const cols = Math.min(colMax, n);
+  const rows = Math.ceil(n / cols);
+  return { rows, cols, colMax };
+}
+
+/**
+ * 2列×15行が画面に収まる行高を基準にする。
+ * ズームは行高に掛け算。3・4列も同じ行高を共用。
+ */
+function applyItemColLayout() {
+  const panel = document.querySelector(".items-panel");
+  const scroll = document.getElementById("items-scroll");
+  if (!panel || !scroll) return;
+
+  const total = Math.floor(scroll.clientHeight - 4);
+  if (total < 100) return;
+
+  const zoom = Number(state.itemZoom) || 1;
+  const headH = Math.max(18, Math.min(28, Math.round(total * 0.045)));
+  const rowH = Math.max(28, Math.min(64, Math.round(((total - headH) / BASE_VISIBLE_ROWS) * zoom * 10) / 10));
+  const qtyH = Math.max(22, Math.min(rowH - 4, Math.round(rowH * 0.82)));
+  const qtyW = Math.max(48, Math.min(76, Math.round(rowH * 1.35 + 10)));
+  const nameFs = Math.max(12, Math.min(22, Math.round(rowH * 0.42 * 10) / 10));
+  const qtyFs = Math.max(13, Math.min(24, Math.round(rowH * 0.48 * 10) / 10));
+  const codeFs = Math.max(10, Math.min(13, Math.round(nameFs * 0.65)));
+  const headFs = Math.max(10, Math.min(13, Math.round(nameFs * 0.7)));
+
+  panel.style.setProperty("--row-h", `${rowH}px`);
+  panel.style.setProperty("--qty-h", `${qtyH}px`);
+  panel.style.setProperty("--qty-w", `${qtyW}px`);
+  panel.style.setProperty("--name-fs", `${nameFs}px`);
+  panel.style.setProperty("--qty-fs", `${qtyFs}px`);
+  panel.style.setProperty("--code-fs", `${codeFs}px`);
+  panel.style.setProperty("--head-fs", `${headFs}px`);
+  panel.style.setProperty("--head-h", `${headH}px`);
+}
+
+function loadItemZoom() {
+  const v = parseFloat(localStorage.getItem(ZOOM_KEY));
+  return Number.isFinite(v) ? Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, v)) : 1;
+}
+
+function updateZoomControls() {
+  const label = document.querySelector(".zoom-label");
+  if (label) label.textContent = `${Math.round(state.itemZoom * 100)}%`;
+  const out = document.getElementById("btn-zoom-out");
+  const inn = document.getElementById("btn-zoom-in");
+  if (out) out.disabled = state.itemZoom <= ZOOM_MIN;
+  if (inn) inn.disabled = state.itemZoom >= ZOOM_MAX;
+  document.querySelectorAll(".btn-col-mode").forEach(btn => {
+    btn.classList.toggle("active", +btn.dataset.cols === state.itemCols);
+  });
+}
+
+function setItemZoom(next, { persist = true } = {}) {
+  state.itemZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(next * 100) / 100));
+  if (persist) localStorage.setItem(ZOOM_KEY, String(state.itemZoom));
+  const panel = document.querySelector(".items-panel");
+  if (panel) panel.style.setProperty("--iz", state.itemZoom);
+  updateZoomControls();
+  applyItemColLayout();
+}
+
+function isLandscape() {
+  return window.matchMedia("(orientation: landscape)").matches || window.innerWidth > window.innerHeight;
+}
+
+function applyDeviceLayout() {
+  const w = window.innerWidth || 1;
+  const h = window.innerHeight || 1;
+  const shortSide = Math.min(w, h);
+  const longSide = Math.max(w, h);
+  let scale = shortSide / 800;
+  scale = Math.max(0.82, Math.min(1.15, Math.round(scale * 100) / 100));
+  let numpadW = Math.round(Math.min(320, Math.max(220, longSide * 0.22)));
+  if (!isLandscape()) numpadW = Math.min(w, 360);
+  document.documentElement.style.setProperty("--ui-scale", String(scale));
+  document.documentElement.style.setProperty("--numpad-w", `${numpadW}px`);
+}
+
+window.addEventListener("resize", () => {
+  applyDeviceLayout();
+  if (state.tab === 0) requestAnimationFrame(() => applyItemColLayout());
+});
+window.addEventListener("orientationchange", () => {
+  applyDeviceLayout();
+  setTimeout(() => { if (state.tab === 0) applyItemColLayout(); }, 250);
+});
+applyDeviceLayout();
+
+const state = {
+  tab: 0,
+  demoMode: false,
+  customers: [],
+  prices: [],
+  ledgers: [],
+  customer: "",
+  deliveryDate: "",
+  items: [],
+  focus: null,
+  buffer: "",
+  detail: null,
+  invoiceMemo: null,
+  userShortId: "",
+  userDisplayName: "",
+  loading: false,
+  itemZoom: loadItemZoom(),
+  itemCols: loadItemCols(),
+  itemAddOpen: false,
+  itemAddTab: "free",
+  itemAddQuery: "",
+  itemAddKanaRow: "",
+  itemAddName: "",
+  itemAddYomi: "",
+  itemAddToMaster: true,
+  masterSection: "customers",
+  masterCustomer: "",
+  masterItemKanaRow: "all",
+  masterItemQuery: "",
+  masterItemCols: loadMasterItemCols(),
+  masterItemZoom: loadMasterItemZoom(),
+  masterForm: null,
+  groupOrder: [],
+};
+
+function isActiveSession() {
+  return state.demoMode || auth.currentUser;
+}
+
+function sessionLabel() {
+  if (state.demoMode) {
+    if (IS_DEMO) return "お試しデモ（本番と別・この端末のみ）";
+    return SKIP_LOGIN && !IS_LOCAL
+      ? "仮運用（ログイン省略・この端末のみ）"
+      : "試用モード（ログイン省略）";
+  }
+  const name = state.userDisplayName || state.userShortId;
+  return name ? `本日ログイン済み · ${name}` : "本日ログイン済み";
+}
+
+async function getUserProfiles() {
+  const snap = await getDocs(collection(db, "userProfiles"));
+  return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+}
+
+async function loadUserProfile(uid) {
+  try {
+    const snap = await getDoc(doc(db, "userProfiles", uid));
+    if (snap.exists()) {
+      const prof = snap.data();
+      state.userShortId = prof.shortId || "";
+      state.userDisplayName = prof.displayName || "";
+    }
+  } catch {}
+}
+
+function setUserProfile(prof) {
+  state.userShortId = prof?.shortId || "";
+  state.userDisplayName = prof?.displayName || "";
+}
+
+async function loginWithPassword(password) {
+  const pass = password.trim();
+  if (!pass) throw new Error("パスワードを入力してください");
+  const profiles = await getUserProfiles();
+  if (!profiles.length) throw new Error("ユーザー情報を取得できません。しばらく待ってから再試行してください。");
+  for (const prof of profiles) {
+    const email = prof.shortId
+      ? prof.shortId.toLowerCase() + "@pv.local"
+      : (prof.email || "");
+    if (!email) continue;
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, pass);
+      setUserProfile(prof);
+      return cred.user;
+    } catch (e) {
+      if (e.code === "auth/too-many-requests") {
+        throw new Error("ログイン試行が多すぎます。しばらく待ってから再試行してください。");
+      }
+    }
+  }
+  throw new Error("パスワードが正しくありません");
+}
+
+function todayInput() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function fmtDate(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso.includes("T") ? iso : iso + "T12:00:00");
+  if (isNaN(d)) return iso;
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function fmtTime(iso) {
+  const d = new Date(iso);
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function sortedLedgers() {
+  return [...state.ledgers].sort((a, b) => {
+    const byDate = (b.deliveryDate || "").localeCompare(a.deliveryDate || "");
+    if (byDate !== 0) return byDate;
+    return (b.createdAt || "").localeCompare(a.createdAt || "");
+  });
+}
+
+function historyCutoffDateStr() {
+  const d = new Date();
+  d.setMonth(d.getMonth() - HISTORY_MONTHS);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function ledgerRetentionDate(record) {
+  if (record.deliveryDate) return record.deliveryDate;
+  if (record.createdAt) return record.createdAt.slice(0, 10);
+  return "";
+}
+
+function applyLedgerRetention(ledgers) {
+  const cutoff = historyCutoffDateStr();
+  return ledgers.filter(l => ledgerRetentionDate(l) >= cutoff);
+}
+
+function cacheLedgers() {
+  const key = state.demoMode ? LEDGERS_KEY_DEMO : "lg_ledgers";
+  try { localStorage.setItem(key, JSON.stringify(state.ledgers)); } catch {}
+}
+
+async function pruneOldLedgersFromCloud() {
+  if (state.demoMode) return;
+  const cutoff = historyCutoffDateStr();
+  const q = query(collection(db, "ledgerRecords"), where("deliveryDate", "<", cutoff));
+  const snap = await getDocs(q);
+  if (snap.empty) return;
+  await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+}
+
+function toast(msg, type = "success") {
+  const el = document.createElement("div");
+  el.className = "toast" + (type === "error" ? " error" : "");
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+async function fsLoad(key) {
+  const snap = await getDoc(doc(db, "pvdata", key));
+  if (!snap.exists()) return null;
+  try { return JSON.parse(snap.data().value); } catch { return null; }
+}
+
+async function loadLedgersFromCloud() {
+  const cutoff = historyCutoffDateStr();
+  try {
+    const q = query(
+      collection(db, "ledgerRecords"),
+      where("deliveryDate", ">=", cutoff),
+      orderBy("deliveryDate", "desc"),
+      limit(500)
+    );
+    const snap = await getDocs(q);
+    state.ledgers = snap.docs.map(d => d.data());
+  } catch (e) {
+    console.warn(e);
+    const q = query(collection(db, "ledgerRecords"), orderBy("createdAt", "desc"), limit(500));
+    const snap = await getDocs(q);
+    state.ledgers = applyLedgerRetention(snap.docs.map(d => d.data()));
+  }
+  cacheLedgers();
+  pruneOldLedgersFromCloud().catch(() => {});
+}
+
+async function fsLoadLedger(key) {
+  const snap = await getDoc(doc(db, "ledgerMaster", key));
+  if (!snap.exists()) return null;
+  try { return JSON.parse(snap.data().value); } catch { return null; }
+}
+
+async function fsSaveLedger(key, data) {
+  await setDoc(doc(db, "ledgerMaster", key), {
+    value: JSON.stringify(data),
+    updatedAt: new Date().toISOString()
+  });
+}
+
+function cacheLedgerMaster() {
+  const custKey = state.demoMode ? MASTER_CUST_KEY_DEMO : MASTER_CUST_KEY;
+  const itemsKey = state.demoMode ? MASTER_ITEMS_KEY_DEMO : MASTER_ITEMS_KEY;
+  const groupKey = state.demoMode ? MASTER_GROUP_KEY_DEMO : MASTER_GROUP_KEY;
+  try {
+    localStorage.setItem(custKey, JSON.stringify(state.customers));
+    localStorage.setItem(itemsKey, JSON.stringify(state.prices));
+    localStorage.setItem(groupKey, JSON.stringify(state.groupOrder));
+  } catch {}
+}
+
+function loadLedgerMasterFromCache() {
+  const custKey = state.demoMode ? MASTER_CUST_KEY_DEMO : MASTER_CUST_KEY;
+  const itemsKey = state.demoMode ? MASTER_ITEMS_KEY_DEMO : MASTER_ITEMS_KEY;
+  const groupKey = state.demoMode ? MASTER_GROUP_KEY_DEMO : MASTER_GROUP_KEY;
+  try {
+    const cust = localStorage.getItem(custKey);
+    const items = localStorage.getItem(itemsKey);
+    if (cust && items) {
+      state.customers = JSON.parse(cust).map(normalizeCustomer).filter(c => c.name);
+      state.prices = normalizeMasterItems(JSON.parse(items));
+      try {
+        state.groupOrder = normalizeGroupOrder(JSON.parse(localStorage.getItem(groupKey) || "[]"));
+      } catch { state.groupOrder = []; }
+      syncGroupOrderFromCustomers();
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+function normalizeMasterItems(rows) {
+  return (Array.isArray(rows) ? rows : []).map(p => ({
+    customer: p.customer || "",
+    code: normalizeItemCode(p.code || ""),
+    name: p.name || p.code || "（名称なし）",
+    yomi: normalizeYomiInput(p.yomi || p.kana || "")
+  })).filter(p => p.customer && p.name);
+}
+
+/** カタカナ→ひらがな、全角半角を揃える */
+function toHiragana(s) {
+  return String(s || "")
+    .normalize("NFKC")
+    .replace(/[\u30A1-\u30F6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+}
+
+function normalizeYomiInput(s) {
+  return toHiragana(s).replace(/[\s　]/g, "");
+}
+
+function normalizeYomiKey(s) {
+  return normalizeYomiInput(s).replace(/[ー\-]/g, "").toLowerCase();
+}
+
+const KANA_ROW_OPTIONS = [
+  { key: "", label: "行を選択" },
+  { key: "all", label: "すべて" },
+  { key: "あ", label: "あ行", chars: "あいうえおぁぃぅぇぉゔ" },
+  { key: "か", label: "か行", chars: "かきくけこがぎぐげご" },
+  { key: "さ", label: "さ行", chars: "さしすせそざじずぜぞ" },
+  { key: "た", label: "た行", chars: "たちつてとだぢづでどっ" },
+  { key: "な", label: "な行", chars: "なにぬねの" },
+  { key: "は", label: "は行", chars: "はひふへほばびぶべぼぱぴぷぺぽ" },
+  { key: "ま", label: "ま行", chars: "まみむめも" },
+  { key: "や", label: "や行", chars: "やゆよゃゅょ" },
+  { key: "ら", label: "ら行", chars: "らりるれろ" },
+  { key: "わ", label: "わ行", chars: "わをんゎ" },
+  { key: "other", label: "その他" }
+];
+
+/** 読み（なければ品名）からあいうえお行を判定。漢字のみで読みなしは「その他」 */
+function kanaRowOf(yomi, name) {
+  const key = normalizeYomiKey(yomi) || normalizeYomiKey(name);
+  if (!key) return "other";
+  const c = key[0];
+  if (!/[ぁ-ん]/.test(c)) return "other";
+  for (const row of KANA_ROW_OPTIONS) {
+    if (row.chars && row.chars.includes(c)) return row.key;
+  }
+  return "other";
+}
+
+function itemYomiSortKey(p) {
+  const y = normalizeYomiKey(p.yomi) || normalizeYomiKey(p.name);
+  return y || `\uffff${normalizeItemName(p.name)}`;
+}
+
+/** 品目追加時：他客先など既存マスタから探す（当客先に無いもの） */
+function searchItemsForMasterAdd(customer, q = "", kanaRow = "all") {
+  const onCustomer = new Set(
+    customerItemRows(customer).map(p => normalizeItemName(p.name))
+  );
+  const query = normalizeItemName(q);
+  const yomiQuery = normalizeYomiKey(q);
+  const rowFilter = String(kanaRow || "all");
+  if (!query && (!rowFilter || rowFilter === "")) return [];
+  if (!query && rowFilter === "all") return [];
+  const seen = new Set();
+  const hits = [];
+  for (const p of state.prices) {
+    const name = (p.name || "").trim();
+    if (!name) continue;
+    const nk = normalizeItemName(name);
+    if (onCustomer.has(nk) || seen.has(nk)) continue;
+    if (rowFilter && rowFilter !== "all") {
+      if (kanaRowOf(p.yomi, name) !== rowFilter) continue;
+    }
+    if (query) {
+      const codeKey = String(p.code || "").toLowerCase();
+      const yomiKey = normalizeYomiKey(p.yomi);
+      const hit =
+        nk.includes(query) ||
+        codeKey.includes(query) ||
+        (yomiKey && yomiQuery && yomiKey.includes(yomiQuery));
+      if (!hit) continue;
+    }
+    seen.add(nk);
+    hits.push({
+      name,
+      yomi: p.yomi || "",
+      code: p.code || "",
+      fromCustomer: p.customer || ""
+    });
+  }
+  hits.sort((a, b) => {
+    const ay = itemYomiSortKey(a);
+    const by = itemYomiSortKey(b);
+    if (ay !== by) return ay < by ? -1 : 1;
+    return normalizeItemName(a.name) < normalizeItemName(b.name) ? -1 : 1;
+  });
+  return hits.slice(0, 50);
+}
+
+/** 客先品目一覧の絞り込み（元の index を保持） */
+function filterCustomerItemsWithIndex(customer, q = "", kanaRow = "all") {
+  const rows = customerItemRows(customer);
+  const query = normalizeItemName(q);
+  const yomiQuery = normalizeYomiKey(q);
+  const rowFilter = String(kanaRow || "all");
+  const out = [];
+  rows.forEach((p, index) => {
+    const name = (p.name || "").trim();
+    if (!name) return;
+    if (rowFilter && rowFilter !== "all" && rowFilter !== "") {
+      if (kanaRowOf(p.yomi, name) !== rowFilter) return;
+    }
+    if (query) {
+      const nameKey = normalizeItemName(name);
+      const codeKey = String(p.code || "").toLowerCase();
+      const yomiKey = normalizeYomiKey(p.yomi);
+      const hit =
+        nameKey.includes(query) ||
+        codeKey.includes(query) ||
+        (yomiKey && yomiQuery && yomiKey.includes(yomiQuery));
+      if (!hit) return;
+    }
+    out.push({ p, index });
+  });
+  out.sort((a, b) => {
+    const ay = itemYomiSortKey(a.p);
+    const by = itemYomiSortKey(b.p);
+    if (ay !== by) return ay < by ? -1 : 1;
+    return normalizeItemName(a.p.name) < normalizeItemName(b.p.name) ? -1 : 1;
+  });
+  return out;
+}
+
+async function importInvoiceMasterIfEmpty() {
+  const [pvCust, pvPrices] = await Promise.all([fsLoad("customers"), fsLoad("prices")]);
+  let imported = false;
+  if (Array.isArray(pvCust) && pvCust.length) {
+    state.customers = pvCust.map(c => normalizeCustomer({ id: c.id || "", name: c.name || "", group: c.group || "" })).filter(c => c.name);
+    imported = true;
+  }
+  if (Array.isArray(pvPrices) && pvPrices.length) {
+    state.prices = normalizeMasterItems(pvPrices);
+    imported = true;
+  }
+  if (imported) await persistLedgerMaster();
+  return imported;
+}
+
+function fillDemoYomiIfMissing() {
+  const yomiMap = new Map(DEMO_PRICES.map(p => [`${p.customer}\t${p.name}`, p.yomi || ""]));
+  state.prices = state.prices.map(p => {
+    if (p.yomi) return p;
+    const y = yomiMap.get(`${p.customer}\t${p.name}`) || "";
+    return y ? { ...p, yomi: y } : p;
+  });
+}
+
+async function loadLedgerMaster() {
+  if (state.demoMode) {
+    if (IS_DEMO) {
+      const pulled = pullMastersFromSlipBridge();
+      if (pulled !== true) {
+        if (!loadLedgerMasterFromCache()) {
+          state.customers = [];
+          state.prices = [];
+          state.groupOrder = [];
+        }
+      }
+      fillDemoYomiIfMissing();
+      state.prices = normalizeMasterItems(state.prices);
+      syncGroupOrderFromCustomers();
+      pushMastersToSlipBridge();
+      return;
+    }
+    if (!loadLedgerMasterFromCache()) {
+      state.customers = DEMO_CUSTOMERS.map(c => ({ ...c }));
+      state.prices = DEMO_PRICES.map(p => ({ ...p }));
+      state.groupOrder = ["グループ1", "グループ2", "グループ3"];
+    }
+    fillDemoYomiIfMissing();
+    state.prices = normalizeMasterItems(state.prices);
+    syncGroupOrderFromCustomers();
+    return;
+  }
+  let customers = await fsLoadLedger("customers");
+  let items = await fsLoadLedger("items");
+  let groups = await fsLoadLedger("groupOrder");
+  const hasMaster = (Array.isArray(customers) && customers.length) || (Array.isArray(items) && items.length);
+  if (!hasMaster) {
+    if (loadLedgerMasterFromCache()) return;
+    await importInvoiceMasterIfEmpty();
+    syncGroupOrderFromCustomers();
+    return;
+  }
+  state.customers = Array.isArray(customers) ? customers.map(normalizeCustomer).filter(c => c.name) : [];
+  state.prices = normalizeMasterItems(items);
+  state.groupOrder = normalizeGroupOrder(groups);
+  syncGroupOrderFromCustomers();
+  cacheLedgerMaster();
+}
+
+async function persistLedgerMaster() {
+  state.customers = state.customers.map(c => normalizeCustomer(c)).filter(c => c.name);
+  state.prices = normalizeMasterItems(state.prices);
+  syncGroupOrderFromCustomers();
+  cacheLedgerMaster();
+  if (IS_DEMO) {
+    pushMastersToSlipBridge();
+    return;
+  }
+  if (state.demoMode) return;
+  await Promise.all([
+    fsSaveLedger("customers", state.customers),
+    fsSaveLedger("items", state.prices),
+    fsSaveLedger("groupOrder", state.groupOrder)
+  ]);
+}
+
+function nextCustomerId() {
+  const ids = state.customers.map(c => parseInt(c.id, 10) || 0);
+  return String((ids.length ? Math.max(...ids) : 0) + 1).padStart(3, "0");
+}
+
+/** 品目コードは N 始まり（例: N001） */
+function nextItemCode() {
+  let max = 0;
+  for (const p of state.prices) {
+    const m = String(p.code || "").trim().match(/^N(\d+)$/i);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  }
+  return "N" + String(max + 1).padStart(3, "0");
+}
+
+function normalizeItemCode(code, { assignIfEmpty = false } = {}) {
+  let c = String(code || "").trim().toUpperCase();
+  if (!c) return assignIfEmpty ? nextItemCode() : "";
+  if (c.startsWith("N")) return c;
+  const digits = c.match(/(\d+)$/);
+  if (digits) return "N" + digits[1].padStart(3, "0");
+  return "N" + c;
+}
+
+function customerItemRows(customer) {
+  return state.prices.filter(p => p.customer === customer);
+}
+
+function openMasterCustomerForm(mode, name = "") {
+  if (!canMasterFullEdit()) {
+    toast("客先の編集はPCまたはタブレットから行ってください", "error");
+    return;
+  }
+  const current = mode === "edit" ? state.customers.find(c => c.name === name) : null;
+  state.masterForm = {
+    kind: "customer",
+    mode,
+    name,
+    group: current?.group || "",
+    oldName: mode === "edit" ? name : ""
+  };
+  render();
+}
+
+function openMasterItemForm(mode, customer, index = -1) {
+  if (mode === "edit" && !canMasterFullEdit()) {
+    toast("品目の編集はPCまたはタブレットから行ってください", "error");
+    return;
+  }
+  const rows = customerItemRows(customer);
+  const row = mode === "edit" ? rows[index] : null;
+  state.masterForm = {
+    kind: "item",
+    mode,
+    customer,
+    index,
+    name: row?.name || "",
+    yomi: row?.yomi || "",
+    code: row?.code || (mode === "add" ? nextItemCode() : ""),
+    searchQuery: "",
+    searchKana: "all"
+  };
+  render();
+}
+
+async function submitMasterForm() {
+  const f = state.masterForm;
+  if (!f) return;
+  if ((f.kind === "customer" || f.kind === "group") && !canMasterFullEdit()) {
+    toast("編集はPCまたはタブレットから行ってください", "error");
+    return;
+  }
+  if (f.kind === "item" && f.mode === "edit" && !canMasterFullEdit()) {
+    toast("品目の編集はPCまたはタブレットから行ってください", "error");
+    return;
+  }
+  const name = (document.getElementById("master-form-name")?.value || "").trim();
+  const codeRaw = (document.getElementById("master-form-code")?.value || "").trim();
+  const yomi = normalizeYomiInput(document.getElementById("master-form-yomi")?.value || "");
+  const group = (document.getElementById("master-form-group")?.value || "").trim();
+  try {
+    if (f.kind === "group") {
+      if (!name) { toast("グループ名を入力してください", "error"); return; }
+      if (name === UNGROUPED_LABEL) { toast("このグループ名は使えません", "error"); return; }
+      syncGroupOrderFromCustomers();
+      if (f.mode === "add") {
+        if (state.groupOrder.includes(name)) { toast("同じグループがあります", "error"); return; }
+        state.groupOrder.push(name);
+      } else {
+        if (name !== f.oldName && state.groupOrder.includes(name)) { toast("同じグループがあります", "error"); return; }
+        state.customers = state.customers.map(c =>
+          (c.group || "").trim() === f.oldName ? normalizeCustomer({ ...c, group: name }) : c
+        );
+        state.groupOrder = state.groupOrder.map(g => g === f.oldName ? name : g);
+      }
+    } else if (f.kind === "customer") {
+      if (!name) { toast("客先名を入力してください", "error"); return; }
+      if (f.mode === "add") {
+        if (state.customers.some(c => c.name === name)) { toast("同じ客先があります", "error"); return; }
+        state.customers.push(normalizeCustomer({ id: nextCustomerId(), name, group }));
+        if (group && !state.groupOrder.includes(group)) state.groupOrder.push(group);
+        if (!state.masterCustomer) state.masterCustomer = name;
+      } else {
+        if (name !== f.oldName && state.customers.some(c => c.name === name)) { toast("同じ客先があります", "error"); return; }
+        state.customers = state.customers.map(c =>
+          c.name === f.oldName ? normalizeCustomer({ ...c, name, group }) : c
+        );
+        if (group && !state.groupOrder.includes(group)) state.groupOrder.push(group);
+        state.prices = state.prices.map(p => p.customer === f.oldName ? { ...p, customer: name } : p);
+        if (state.customer === f.oldName) {
+          state.customer = name;
+          loadCustomerItems(name);
+        }
+        if (state.masterCustomer === f.oldName) state.masterCustomer = name;
+      }
+    } else {
+      const customer = f.customer || state.masterCustomer;
+      if (!customer) { toast("客先を選択してください", "error"); return; }
+      if (!name) { toast("品名を入力してください", "error"); return; }
+      const code = normalizeItemCode(codeRaw, { assignIfEmpty: true });
+      if (f.mode === "add") {
+        if (customerItemRows(customer).some(p => normalizeItemName(p.name) === normalizeItemName(name))) {
+          toast("この客先には同じ品名がすでにあります", "error");
+          return;
+        }
+        state.prices.push({ customer, code, name, yomi });
+      } else {
+        const rows = customerItemRows(customer);
+        const target = rows[f.index];
+        if (!target) { toast("品目が見つかりません", "error"); return; }
+        state.prices = state.prices.map(p => p === target ? { customer, code, name, yomi } : p);
+        if (state.customer === customer) loadCustomerItems(customer);
+      }
+    }
+    await persistLedgerMaster();
+    state.masterForm = null;
+    toast("保存しました");
+    render();
+  } catch (e) {
+    console.error(e);
+    toast("保存に失敗しました", "error");
+  }
+}
+
+async function deleteMasterCustomer(name) {
+  if (!canMasterFullEdit()) {
+    toast("客先の削除はPCまたはタブレットから行ってください", "error");
+    return;
+  }
+  if (!confirm(`「${name}」を削除しますか？\nこの客先の品目もすべて削除されます。`)) return;
+  try {
+    state.customers = state.customers.filter(c => c.name !== name);
+    state.prices = state.prices.filter(p => p.customer !== name);
+    if (state.customer === name) {
+      state.customer = "";
+      state.items = [];
+      state.focus = null;
+      state.buffer = "";
+    }
+    if (state.masterCustomer === name) state.masterCustomer = state.customers[0]?.name || "";
+    await persistLedgerMaster();
+    toast("削除しました");
+    render();
+  } catch (e) {
+    console.error(e);
+    toast("削除に失敗しました", "error");
+  }
+}
+
+async function deleteMasterItem(customer, index) {
+  if (!canMasterFullEdit()) {
+    toast("品目の削除はPCまたはタブレットから行ってください", "error");
+    return;
+  }
+  const rows = customerItemRows(customer);
+  const target = rows[index];
+  if (!target) return;
+  if (!confirm(`「${target.name}」を削除しますか？`)) return;
+  try {
+    state.prices = state.prices.filter(p => p !== target);
+    if (state.customer === customer) loadCustomerItems(customer);
+    await persistLedgerMaster();
+    toast("削除しました");
+    render();
+  } catch (e) {
+    console.error(e);
+    toast("削除に失敗しました", "error");
+  }
+}
+
+async function loadMasters() {
+  state.loading = true;
+  render();
+  if (state.demoMode) {
+    await loadLedgerMaster();
+    try {
+      const cached = localStorage.getItem(LEDGERS_KEY_DEMO);
+      state.ledgers = applyLedgerRetention(cached ? JSON.parse(cached) : []);
+    } catch { state.ledgers = []; }
+    ensureDemoLedgers();
+    state.loading = false;
+    render();
+    return;
+  }
+  try {
+    await loadLedgerMaster();
+    await loadLedgersFromCloud();
+  } catch (e) {
+    console.error(e);
+    toast("マスタの読込に失敗しました", "error");
+    loadLedgerMasterFromCache();
+    try {
+      const cached = localStorage.getItem("lg_ledgers");
+      if (cached) state.ledgers = applyLedgerRetention(JSON.parse(cached));
+    } catch {}
+  }
+  if (!state.masterCustomer && state.customers.length) state.masterCustomer = state.customers[0].name;
+  state.loading = false;
+  render();
+}
+
+function loadCustomerItems(name) {
+  state.customer = name;
+  const rows = state.prices.filter(p => p.customer === name);
+  state.items = rows.map(p => ({
+    code: p.code || "",
+    name: p.name || p.code || "（名称なし）",
+    inQty: "",
+    outQty: ""
+  }));
+  state.focus = null;
+  state.buffer = "";
+}
+
+function selectCustomer(name) {
+  applyBuffer();
+  state.focus = null;
+  state.buffer = "";
+  state.itemAddOpen = false;
+  if (!name) {
+    state.customer = "";
+    state.items = [];
+    render();
+    return;
+  }
+  loadCustomerItems(name);
+  render();
+}
+
+function openItemAdd(tab = "free") {
+  if (!state.customer) {
+    toast("先に客先を選択してください", "error");
+    return;
+  }
+  applyBuffer();
+  state.itemAddOpen = true;
+  state.itemAddTab = tab;
+  state.itemAddQuery = "";
+  state.itemAddKanaRow = "";
+  state.itemAddName = "";
+  state.itemAddYomi = "";
+  state.itemAddToMaster = true;
+  state.focus = null;
+  state.buffer = "";
+  render();
+}
+
+function closeItemAdd() {
+  state.itemAddOpen = false;
+  render();
+}
+
+function searchMasterItems(q, kanaRow = "") {
+  const query = normalizeItemName(q);
+  const yomiQuery = normalizeYomiKey(q);
+  const rowFilter = String(kanaRow || "");
+  if (!query && !rowFilter) return [];
+  const seen = new Set();
+  const hits = [];
+  for (const p of state.prices) {
+    const name = (p.name || "").trim();
+    if (!name) continue;
+    const key = `${normalizeItemName(name)}\t${(p.code || "").trim()}`;
+    if (seen.has(key)) continue;
+    const nameKey = normalizeItemName(name);
+    const codeKey = String(p.code || "").toLowerCase();
+    const yomiKey = normalizeYomiKey(p.yomi);
+    if (rowFilter && rowFilter !== "all") {
+      if (kanaRowOf(p.yomi, name) !== rowFilter) continue;
+    }
+    if (query) {
+      const hitText =
+        nameKey.includes(query) ||
+        codeKey.includes(query) ||
+        (yomiKey && yomiQuery && yomiKey.includes(yomiQuery));
+      if (!hitText) continue;
+    }
+    if (isOnInputList(name)) continue;
+    seen.add(key);
+    hits.push({
+      name,
+      code: p.code || "",
+      yomi: p.yomi || "",
+      fromCustomer: p.customer || "",
+      alreadyOnCustomer: state.prices.some(x => x.customer === state.customer && normalizeItemName(x.name) === nameKey)
+    });
+  }
+  hits.sort((a, b) => {
+    const ay = itemYomiSortKey(a);
+    const by = itemYomiSortKey(b);
+    if (ay !== by) return ay < by ? -1 : 1;
+    return normalizeItemName(a.name) < normalizeItemName(b.name) ? -1 : 1;
+  });
+  return hits.slice(0, 80);
+}
+
+function normalizeItemName(name) {
+  return String(name || "")
+    .trim()
+    .normalize("NFKC")
+    .replace(/[\s　]+/g, "")
+    .toLowerCase();
+}
+
+/** 登録済み品目を探す（当客先優先、なければ全体） */
+function findRegisteredItem(name) {
+  const key = normalizeItemName(name);
+  if (!key) return null;
+  const onCustomer = state.prices.find(
+    p => p.customer === state.customer && normalizeItemName(p.name) === key
+  );
+  if (onCustomer) return onCustomer;
+  return state.prices.find(p => normalizeItemName(p.name) === key) || null;
+}
+
+function isOnInputList(name) {
+  const key = normalizeItemName(name);
+  return state.items.some(it => normalizeItemName(it.name) === key);
+}
+
+async function addItemToInput(name, { code = "", toMaster = false, yomi: yomiOpt = "" } = {}) {
+  if (!state.customer) {
+    toast("先に客先を選択してください", "error");
+    return;
+  }
+  name = String(name || "").trim();
+  if (!name) {
+    toast("品名を入力してください", "error");
+    return;
+  }
+
+  const registered = findRegisteredItem(name);
+  if (registered) {
+    if (isOnInputList(registered.name)) {
+      toast("すでに一覧にあります", "error");
+      return;
+    }
+    let itemCode = registered.code || code || "";
+    let onThisCustomer = registered.customer === state.customer;
+    if (toMaster && !onThisCustomer) {
+      itemCode = normalizeItemCode(itemCode, { assignIfEmpty: true });
+      state.prices.push({
+        customer: state.customer,
+        code: itemCode,
+        name: registered.name,
+        yomi: registered.yomi || ""
+      });
+      try {
+        await persistLedgerMaster();
+      } catch (e) {
+        console.error(e);
+        toast("マスタへの登録に失敗しました", "error");
+        return;
+      }
+      onThisCustomer = true;
+    }
+    state.items.push({
+      code: itemCode || "",
+      name: registered.name,
+      inQty: "",
+      outQty: "",
+      adhoc: !onThisCustomer
+    });
+    state.itemAddOpen = false;
+    state.focus = { index: state.items.length - 1, field: "in" };
+    state.buffer = "";
+    toast("登録済みの品目です。マスタから追加しました");
+    render();
+    return;
+  }
+
+  if (isOnInputList(name)) {
+    toast("すでに一覧にあります", "error");
+    return;
+  }
+  let itemCode = code || "";
+  let adhoc = true;
+  const yomi = normalizeYomiInput(yomiOpt || state.itemAddYomi || "");
+  if (toMaster) {
+    itemCode = normalizeItemCode(itemCode, { assignIfEmpty: true });
+    state.prices.push({ customer: state.customer, code: itemCode, name, yomi });
+    try {
+      await persistLedgerMaster();
+    } catch (e) {
+      console.error(e);
+      toast("マスタへの登録に失敗しました", "error");
+      return;
+    }
+    adhoc = false;
+  }
+  state.items.push({
+    code: itemCode || "",
+    name,
+    inQty: "",
+    outQty: "",
+    adhoc
+  });
+  state.itemAddOpen = false;
+  state.focus = { index: state.items.length - 1, field: "in" };
+  state.buffer = "";
+  toast(toMaster ? "品目を追加しマスタにも登録しました" : "品目を追加しました");
+  render();
+}
+
+function removeInputItem(index) {
+  applyBuffer();
+  if (index < 0 || index >= state.items.length) return;
+  const it = state.items[index];
+  if (!it.adhoc) {
+    toast("マスタ品目は一覧から削除できません（数量を空のままにしてください）", "error");
+    return;
+  }
+  state.items.splice(index, 1);
+  state.focus = null;
+  state.buffer = "";
+  render();
+}
+
+function setFocus(index, field) {
+  if (state.focus && (state.focus.index !== index || state.focus.field !== field)) {
+    applyBuffer();
+  }
+  state.focus = { index, field };
+  const item = state.items[index];
+  state.buffer = String(field === "in" ? item.inQty : item.outQty || "");
+  render();
+}
+
+function applyBuffer() {
+  if (!state.focus) return;
+  const { index, field } = state.focus;
+  const val = state.buffer === "" ? "" : String(parseInt(state.buffer, 10) || 0);
+  if (field === "in") state.items[index].inQty = val;
+  else state.items[index].outQty = val;
+}
+
+function numpadPress(key) {
+  if (!state.focus) {
+    if (key !== "enter") toast("入または出をタップしてください", "error");
+    return;
+  }
+  if (key === "del") {
+    state.buffer = state.buffer.slice(0, -1);
+  } else if (key === "enter") {
+    applyBuffer();
+    const { index, field } = state.focus;
+    if (index + 1 < state.items.length) {
+      state.focus = { index: index + 1, field };
+      state.buffer = String(
+        field === "in" ? state.items[index + 1].inQty : state.items[index + 1].outQty || ""
+      );
+    } else {
+      state.focus = null;
+      state.buffer = "";
+    }
+  } else {
+    if (state.buffer.length >= 4) return;
+    state.buffer = (state.buffer === "0" ? "" : state.buffer) + key;
+  }
+  render();
+  if (state.focus) {
+    requestAnimationFrame(() => {
+      const el = document.querySelector(
+        `.qty-cell[data-i="${state.focus.index}"][data-f="${state.focus.field}"]`
+      );
+      el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  }
+}
+
+function isTypingInFormField(el) {
+  if (!el || el === document.body) return false;
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || el.isContentEditable;
+}
+
+/** キーボードEnter／数字もテンキーと同じ（Enterで縦に進む） */
+function onAppKeyDown(e) {
+  if (!isActiveSession() || state.tab !== 0 || state.loading) return;
+  if (state.detail || state.invoiceMemo || state.masterForm || state.itemAddOpen) return;
+  if (isTypingInFormField(document.activeElement) || isTypingInFormField(e.target)) return;
+  if (!state.focus) return;
+
+  if (e.key === "Enter") {
+    e.preventDefault();
+    numpadPress("enter");
+    return;
+  }
+  if (e.key === "Backspace" || e.key === "Delete") {
+    e.preventDefault();
+    numpadPress("del");
+    return;
+  }
+  if (/^[0-9]$/.test(e.key)) {
+    e.preventDefault();
+    numpadPress(e.key);
+  }
+}
+
+window.addEventListener("keydown", onAppKeyDown);
+
+function buildLedgerRecord() {
+  const user = auth.currentUser;
+  return {
+    id: Date.now(),
+    customer: state.customer,
+    deliveryDate: state.deliveryDate || todayInput(),
+    items: state.items.map(it => ({
+      code: it.code,
+      name: it.name,
+      inQty: parseInt(it.inQty, 10) || 0,
+      outQty: parseInt(it.outQty, 10) || 0
+    })),
+    createdAt: new Date().toISOString(),
+    createdBy: user?.uid || "",
+    createdByEmail: state.demoMode ? "試用モード" : (state.userDisplayName || state.userShortId || ""),
+  };
+}
+
+function hasAnyQty(record) {
+  return record.items.some(it => it.inQty > 0 || it.outQty > 0);
+}
+
+async function saveLedger() {
+  applyBuffer();
+  if (!state.customer) { toast("客先を選択してください", "error"); return; }
+  const record = buildLedgerRecord();
+  if (!hasAnyQty(record)) { toast("数量を入力してください", "error"); return; }
+  state.ledgers = applyLedgerRetention([record, ...state.ledgers]);
+  try {
+    if (state.demoMode) {
+      cacheLedgers();
+    } else {
+      await addDoc(collection(db, "ledgerRecords"), record);
+      await pruneOldLedgersFromCloud();
+      cacheLedgers();
+    }
+    toast(state.demoMode
+      ? (IS_DEMO ? "台帳を保存しました（デモ・この端末のみ）"
+        : SKIP_LOGIN && !IS_LOCAL ? "台帳を保存しました（仮運用・この端末のみ）" : "台帳を保存しました（試用・この端末のみ）")
+      : "台帳を保存しました");
+    state.items = state.items.map(it => ({ ...it, inQty: "", outQty: "" }));
+    state.focus = null;
+    state.buffer = "";
+    render();
+    return record;
+  } catch (e) {
+    console.error(e);
+    state.ledgers = state.ledgers.filter(l => l.id !== record.id);
+    toast("保存に失敗しました", "error");
+    return null;
+  }
+}
+
+function showInvoiceMemo(record) {
+  const outItems = (record.items || []).filter(it => it.outQty > 0);
+  if (outItems.length === 0) {
+    toast("「出」の数量がありません", "error");
+    return;
+  }
+  state.invoiceMemo = record;
+  render();
+}
+
+function showMemoFromForm() {
+  applyBuffer();
+  if (!state.customer) { toast("客先を選択してください", "error"); return; }
+  const record = buildLedgerRecord();
+  if (!hasAnyQty(record)) { toast("数量を入力してください", "error"); return; }
+  showInvoiceMemo(record);
+}
+
+function renderInvoiceMemo(ledger) {
+  const outItems = ledger.items.filter(it => it.outQty > 0);
+  const rows = outItems.map(it =>
+    `<tr><td>${esc(it.name)}${it.code ? `<div style="font-size:11px;color:#888">${esc(it.code)}</div>` : ""}</td><td class="qty">${it.outQty}</td></tr>`
+  ).join("");
+  return `
+    <div class="detail-overlay" id="memo-overlay">
+      <div class="detail-panel">
+        <h2>伝票入力メモ</h2>
+        <p style="font-size:13px;color:#666;margin-bottom:8px">${esc(ledger.customer)} · 納品日 ${fmtDate(ledger.deliveryDate)}</p>
+        <div class="memo-note">伝票アプリは今までどおり別途開いて入力してください。この画面の「出」の数量を見ながら、伝票発行画面へ転記します。</div>
+        <table class="memo-table"><thead><tr><th>品名</th><th style="text-align:right">出</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="memo-actions">
+          <button class="btn btn-ghost" id="memo-close" style="background:#f4f3ef;color:#1a1a2e">閉じる</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderLogin(notice) {
+  document.getElementById("root").innerHTML = `
+    <div class="login-wrap">
+      <div class="login-card">
+        <h1>入出荷台帳</h1>
+        <p>パスワードを入力してください。<br>朝いちどログインすれば、その日は再入力不要です。</p>
+        ${notice ? `<p style="font-size:13px;color:#c62828;margin-bottom:12px">${esc(notice)}</p>` : ""}
+        <label class="lbl" style="margin-top:8px">パスワード</label>
+        <input type="password" id="login-pass" placeholder="パスワード" autocomplete="current-password">
+        <p id="login-error" style="font-size:13px;color:#c62828;min-height:20px;margin-top:8px;text-align:center"></p>
+        <button class="btn btn-primary" style="width:100%;padding:12px;margin-top:4px" id="login-btn">ログイン</button>
+        <button type="button" class="btn btn-ghost install-btn hidden" style="width:100%;padding:12px;margin-top:10px">アプリをインストール</button>
+        ${IS_LOCAL ? `<button class="btn btn-ghost" style="width:100%;padding:12px;margin-top:10px" id="demo-btn">ログインなしで試す</button>` : ""}
+      </div>
+    </div>`;
+  if (IS_LOCAL) document.getElementById("demo-btn").onclick = () => startDemoMode();
+  const passInput = document.getElementById("login-pass");
+  const errEl = document.getElementById("login-error");
+  const doLogin = async () => {
+    errEl.textContent = "";
+    try {
+      await loginWithPassword(passInput.value);
+      markSessionDay();
+    } catch (e) {
+      errEl.textContent = e.message || "ログインに失敗しました";
+    }
+  };
+  document.getElementById("login-btn").onclick = doLogin;
+  passInput.onkeydown = e => { if (e.key === "Enter") doLogin(); };
+  bindInstallButtons();
+}
+
+function renderItemRow(it, i) {
+  const inActive = state.focus?.index === i && state.focus.field === "in";
+  const outActive = state.focus?.index === i && state.focus.field === "out";
+  const inDisp = inActive ? (state.buffer || "0") : (it.inQty !== "" ? it.inQty : "—");
+  const outDisp = outActive ? (state.buffer || "0") : (it.outQty !== "" ? it.outQty : "—");
+  const inNum = inActive
+    ? (state.buffer === "" ? null : (parseInt(state.buffer, 10) || 0))
+    : (it.inQty === "" ? null : (parseInt(it.inQty, 10) || 0));
+  const outNum = outActive
+    ? (state.buffer === "" ? null : (parseInt(state.buffer, 10) || 0))
+    : (it.outQty === "" ? null : (parseInt(it.outQty, 10) || 0));
+  const outMismatch = inNum !== null && outNum !== null && inNum !== outNum;
+  return `<div class="item-row${inActive || outActive ? " active" : ""}">
+    <div class="item-main"><span class="item-name">${esc(it.name)}</span>${it.adhoc ? `<span class="item-badge">臨時</span>` : ""}${it.code ? `<span class="item-code">${esc(it.code)}</span>` : ""}${it.adhoc ? `<button type="button" class="item-row-remove" data-remove-item="${i}" aria-label="臨時品目を削除">×</button>` : ""}</div>
+    <div class="qty-cell in-col${inActive ? " active-in" : ""}${it.inQty === "" && !inActive ? " empty" : ""}" data-i="${i}" data-f="in">${esc(String(inDisp))}</div>
+    <div class="qty-cell out-col${outActive ? " active-out" : ""}${it.outQty === "" && !outActive ? " empty" : ""}${outMismatch ? " mismatch" : ""}" data-i="${i}" data-f="out">${esc(String(outDisp))}</div>
+  </div>`;
+}
+
+function renderInputTab() {
+  const custOpts = renderCustomerSelectOptions(state.customer);
+  const layout = itemLayoutMeta();
+  const headUnit = `<div class="list-head-unit"><span>品名</span><span>入</span><span>出</span></div>`;
+
+  let body = "";
+  if (state.items.length === 0) {
+    body = `<div class="empty">${state.customer ? "品目がありません" : "客先を選択してください"}</div>`;
+  } else {
+    const colsHtml = [];
+    for (let c = 0; c < layout.cols; c++) {
+      const start = c * layout.rows;
+      const slice = state.items.slice(start, start + layout.rows);
+      const rowsHtml = slice.map((it, j) => renderItemRow(it, start + j)).join("");
+      colsHtml.push(`<div class="item-col" data-col="${c}">${headUnit}${rowsHtml}</div>`);
+    }
+    body = `<div class="item-list col-flow" data-cols="${layout.cols}" data-rows="${layout.rows}">${colsHtml.join("")}</div>`;
+  }
+
+  return `
+    <div class="input-layout">
+      <div class="card input-fixed">
+        <div class="meta-row">
+          <div><label class="lbl">客先</label>
+            <select id="cust-select"><option value="">-- 選択 --</option>${custOpts}</select></div>
+          <div><label class="lbl">納品日</label>
+            <input type="date" id="delivery-date" value="${state.deliveryDate || todayInput()}"></div>
+        </div>
+        <button type="button" class="item-add-btn" id="btn-item-add" ${state.customer ? "" : "disabled"}>＋ 品目を追加（自由入力 / マスタ検索）</button>
+        <p class="sync-note">${state.demoMode
+          ? (IS_DEMO ? "お試しデモ：この端末のマスタ・履歴のみ（本番と別）"
+            : SKIP_LOGIN && !IS_LOCAL ? "仮運用：この端末のマスタ・履歴のみ（運用開始後にログイン必須へ切替）" : "試用モード：この端末のマスタを使用")
+          : "台帳アプリのマスタ（全端末で共有）"}</p>
+      </div>
+      <div class="items-panel" style="--iz:${state.itemZoom}">
+        <button type="button" class="scroll-btn" id="scroll-up" aria-label="上へスクロール">▲ 上へ</button>
+        <div class="card items-scroll" id="items-scroll">${body}</div>
+        <button type="button" class="scroll-btn" id="scroll-down" aria-label="下へスクロール">▼ 下へ</button>
+      </div>
+    </div>`;
+}
+
+function renderItemAddPanel() {
+  if (!state.itemAddOpen) return "";
+  const free = state.itemAddTab === "free";
+  const hits = free ? [] : searchMasterItems(state.itemAddQuery, state.itemAddKanaRow);
+  const hasFilter = !!(state.itemAddQuery.trim() || state.itemAddKanaRow);
+  const hitRows = hits.length
+    ? hits.map((h, i) => `
+      <button type="button" class="item-add-hit" data-add-hit="${i}">
+        <div>
+          <div class="item-add-hit-title">${esc(h.name)}</div>
+          <div class="item-add-hit-meta">${h.yomi ? `読み ${esc(h.yomi)} · ` : ""}${h.code ? `コード ${esc(h.code)} · ` : ""}${h.fromCustomer ? esc(h.fromCustomer) : ""}${h.alreadyOnCustomer ? " · この客先マスタにあり" : ""}</div>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:#0288D1">追加</span>
+      </button>`).join("")
+    : `<div class="empty" style="padding:20px">${hasFilter ? "該当なし" : "あ行などを選ぶか、キーワードを入力してください"}</div>`;
+  const kanaOpts = KANA_ROW_OPTIONS.map(r =>
+    `<option value="${esc(r.key)}" ${state.itemAddKanaRow === r.key ? "selected" : ""}>${esc(r.label)}</option>`
+  ).join("");
+
+  return `
+    <div class="detail-overlay" id="item-add-overlay">
+      <div class="item-add-panel">
+        <h3 style="font-size:17px;margin-bottom:12px">品目を追加</h3>
+        <div class="item-add-tabs">
+          <button type="button" class="item-add-tab${free ? " active" : ""}" data-item-add-tab="free">自由入力</button>
+          <button type="button" class="item-add-tab${!free ? " active" : ""}" data-item-add-tab="search">マスタ検索</button>
+        </div>
+        ${free ? `
+          <label class="lbl">品名</label>
+          <input type="text" id="item-add-name" value="${esc(state.itemAddName)}" placeholder="例：貸出シーツ（臨時）" autofocus>
+          <label class="lbl">読み仮名（マスタ登録時・あ行検索用）</label>
+          <input type="text" id="item-add-yomi" value="${esc(state.itemAddYomi)}" placeholder="例：かしだししーつ" inputmode="kana">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin:8px 0 14px;cursor:pointer">
+            <input type="checkbox" id="item-add-to-master" ${state.itemAddToMaster ? "checked" : ""} style="width:18px;height:18px">
+            この客先のマスタにも登録する
+          </label>
+          <div class="master-form-actions">
+            <button type="button" class="btn btn-ghost" id="item-add-cancel" style="background:#f4f3ef;color:#1a1a2e">キャンセル</button>
+            <button type="button" class="btn btn-primary" id="item-add-save">追加</button>
+          </div>
+        ` : `
+          <div style="display:grid;grid-template-columns:130px 1fr;gap:8px;margin-bottom:4px">
+            <div>
+              <label class="lbl">行</label>
+              <select id="item-add-kana">${kanaOpts}</select>
+            </div>
+            <div>
+              <label class="lbl">キーワード（品名・読み・コード）</label>
+              <input type="text" id="item-add-query" value="${esc(state.itemAddQuery)}" placeholder="キーワード" autofocus>
+            </div>
+          </div>
+          <p style="font-size:11px;color:#888;margin:0 0 8px">漢字は読み仮名があるとあ行で探せます。未登録は「その他」</p>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin:0 0 4px;cursor:pointer">
+            <input type="checkbox" id="item-add-to-master" ${state.itemAddToMaster ? "checked" : ""} style="width:18px;height:18px">
+            この客先のマスタにも登録する
+          </label>
+          <div class="item-add-search-list">${hitRows}</div>
+          <div class="master-form-actions" style="margin-top:12px">
+            <button type="button" class="btn btn-ghost" id="item-add-cancel" style="background:#f4f3ef;color:#1a1a2e">閉じる</button>
+          </div>
+        `}
+      </div>
+    </div>`;
+}
+
+function renderHistoryTab() {
+  const list = sortedLedgers();
+  if (list.length === 0) {
+    return `<div class="empty">保存された台帳はまだありません</div>`;
+  }
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px">
+    <p class="history-note" style="margin:0">納品日の新しい順 · 直近${HISTORY_MONTHS}か月</p>
+    <button class="btn btn-ghost" id="btn-refresh-history" style="background:#fff;border:1px solid #ddd;color:#333;padding:6px 12px;font-size:12px;flex-shrink:0">↻ 更新</button>
+  </div>
+  <table class="history-table">
+    <thead><tr><th>納品日</th><th>客先</th><th class="num">入</th><th class="num">出</th></tr></thead>
+    <tbody>${list.map(l => {
+      const outSum = l.items.reduce((s, it) => s + (it.outQty || 0), 0);
+      const inSum = l.items.reduce((s, it) => s + (it.inQty || 0), 0);
+      return `<tr class="history-row" data-id="${l.id}">
+        <td class="col-date">${fmtDate(l.deliveryDate)}</td>
+        <td class="col-customer">${esc(l.customer)}</td>
+        <td class="num">${inSum || "—"}</td>
+        <td class="num">${outSum || "—"}</td>
+      </tr>`;
+    }).join("")}</tbody>
+  </table>`;
+}
+
+function renderMasterTab() {
+  const fullEdit = canMasterFullEdit();
+  const section = fullEdit ? state.masterSection : "items";
+  const customerSection = section === "customers";
+  const groupSection = section === "groups";
+  const itemSection = section === "items";
+  const grouped = customersGrouped();
+  const custRows = grouped.map(({ group, customers }) => {
+    const rows = customers.map((c, gi) => {
+      const count = customerItemRows(c.name).length;
+      const gName = customerGroupName(c);
+      const canUp = gi > 0;
+      const canDown = gi < customers.length - 1;
+      return `<div class="master-row">
+      <div class="master-row-body">
+        <div class="master-row-title">${esc(c.name)}</div>
+        <div class="master-row-meta">品目 ${count} 件${c.id ? ` · ID ${esc(c.id)}` : ""} · ${esc(gName)}</div>
+      </div>
+      ${fullEdit ? `<div class="master-row-actions">
+        <button type="button" class="master-btn master-btn-move" data-master-move="${esc(c.name)}" data-dir="-1" ${canUp ? "" : "disabled"} aria-label="上へ">↑</button>
+        <button type="button" class="master-btn master-btn-move" data-master-move="${esc(c.name)}" data-dir="1" ${canDown ? "" : "disabled"} aria-label="下へ">↓</button>
+        <button type="button" class="master-btn master-btn-edit" data-master-customer-name="${esc(c.name)}">編集</button>
+        <button type="button" class="master-btn master-btn-del" data-master-del-customer-name="${esc(c.name)}">削除</button>
+      </div>` : ""}
+    </div>`;
+    }).join("");
+    return `<div class="master-group">
+      <div class="master-group-title">${esc(group)}（${customers.length}）</div>
+      ${rows}
+    </div>`;
+  }).join("");
+
+  const groups = managedGroups();
+  const groupRows = groups.map((g, i) => `
+    <div class="master-row">
+      <div class="master-row-body">
+        <div class="master-row-title">${esc(g.name)}</div>
+        <div class="master-row-meta">客先 ${g.count} 件</div>
+      </div>
+      <div class="master-row-actions">
+        <button type="button" class="master-btn master-btn-move" data-group-move="${esc(g.name)}" data-dir="-1" ${i > 0 ? "" : "disabled"} aria-label="上へ">↑</button>
+        <button type="button" class="master-btn master-btn-move" data-group-move="${esc(g.name)}" data-dir="1" ${i < groups.length - 1 ? "" : "disabled"} aria-label="下へ">↓</button>
+        <button type="button" class="master-btn master-btn-edit" data-group-edit="${esc(g.name)}">編集</button>
+        <button type="button" class="master-btn master-btn-del" data-group-del="${esc(g.name)}">削除</button>
+      </div>
+    </div>`).join("");
+
+  const masterCust = state.masterCustomer || state.customers[0]?.name || "";
+  const filteredItems = masterCust
+    ? filterCustomerItemsWithIndex(masterCust, state.masterItemQuery, state.masterItemKanaRow)
+    : [];
+  const totalItems = masterCust ? customerItemRows(masterCust).length : 0;
+  const itemRows = filteredItems.map(({ p, index }) => `
+    <div class="master-row">
+      <div class="master-row-body">
+        <div class="master-row-title">${esc(p.name)}</div>
+        <div class="master-row-meta">${p.yomi ? `読み ${esc(p.yomi)} · ` : ""}${p.code ? `コード ${esc(p.code)}` : "コードなし"}</div>
+      </div>
+      ${fullEdit ? `<div class="master-row-actions">
+        <button type="button" class="master-btn master-btn-edit" data-master-edit-item="${index}">編集</button>
+        <button type="button" class="master-btn master-btn-del" data-master-del-item="${index}">削除</button>
+      </div>` : ""}
+    </div>`).join("");
+  const kanaOpts = KANA_ROW_OPTIONS.filter(r => r.key !== "").map(r =>
+    `<option value="${esc(r.key)}" ${state.masterItemKanaRow === r.key ? "selected" : ""}>${esc(r.label)}</option>`
+  ).join("");
+  const itemEmptyMsg = !masterCust
+    ? "客先を登録してください"
+    : (totalItems === 0
+      ? "品目がありません"
+      : (filteredItems.length === 0 ? "条件に合う品目がありません" : ""));
+
+  const custOpts = renderCustomerSelectOptions(masterCust);
+
+  const note = "客先・グループ・品目を管理できます。伝票アプリのマスタは変更しません。";
+
+  let body = "";
+  if (customerSection) {
+    body = `
+      <div class="master-toolbar-actions">
+        <button type="button" class="master-add" id="master-add-customer">＋ 客先を追加</button>
+        <button type="button" class="btn" id="master-sort-customers">名前順に並べ替え</button>
+      </div>
+      <div class="master-list">${custRows || `<div class="empty" style="padding:24px">客先がありません</div>`}</div>`;
+  } else if (groupSection) {
+    body = `
+      <p class="sync-note" style="margin:0 0 10px">グループの追加・改名・並べ替え・削除ができます。削除すると所属客先は未分類になります。</p>
+      <div class="master-toolbar-actions">
+        <button type="button" class="master-add" id="master-add-group">＋ グループを追加</button>
+      </div>
+      <div class="master-list">${groupRows || `<div class="empty" style="padding:24px">グループがありません</div>`}</div>`;
+  } else {
+    body = `
+      <div class="master-toolbar">
+        <select id="master-cust-select">${state.customers.length ? custOpts : `<option value="">客先がありません</option>`}</select>
+      </div>
+      <div style="display:grid;grid-template-columns:130px 1fr;gap:8px;margin:10px 0 6px">
+        <div>
+          <label class="lbl">行</label>
+          <select id="master-item-kana">${kanaOpts}</select>
+        </div>
+        <div>
+          <label class="lbl">検索（品名・読み・コード）</label>
+          <input type="text" id="master-item-query" value="${esc(state.masterItemQuery)}" placeholder="キーワード">
+        </div>
+      </div>
+      <div class="master-view-controls">
+        <div class="row-btns" role="group" aria-label="品目の列数">
+          ${ITEM_COLS_OPTIONS.map(c =>
+            `<button type="button" class="btn-mcol${state.masterItemCols === c ? " active" : ""}" data-master-cols="${c}">${c}列</button>`
+          ).join("")}
+        </div>
+        <div class="zoom-btns" role="group" aria-label="品目の表示倍率">
+          <button type="button" class="btn-mzoom" id="master-zoom-out" aria-label="縮小" ${state.masterItemZoom <= ZOOM_MIN ? "disabled" : ""}>−</button>
+          <span class="mzoom-label">${Math.round(state.masterItemZoom * 100)}%</span>
+          <button type="button" class="btn-mzoom" id="master-zoom-in" aria-label="拡大" ${state.masterItemZoom >= ZOOM_MAX ? "disabled" : ""}>＋</button>
+        </div>
+      </div>
+      <p class="sync-note" style="margin:0 0 8px">${totalItems ? `${filteredItems.length} / ${totalItems} 件` : "品目なし"} · 読み仮名順 · ${state.masterItemCols}列</p>
+      <button type="button" class="master-add" id="master-add-item" ${state.customers.length ? "" : "disabled"}>＋ 品目を追加</button>
+      <div class="master-list cols" style="margin-top:10px;--master-cols:${state.masterItemCols};--mz:${state.masterItemZoom}">${itemRows || `<div class="empty master-empty" style="padding:24px">${esc(itemEmptyMsg)}</div>`}</div>`;
+  }
+
+  return `
+    <div class="card" style="margin-bottom:12px">
+      <p class="sync-note" style="margin:0 0 10px">${note}</p>
+      ${fullEdit ? `<div class="master-subtabs">
+        <button type="button" class="master-subtab${customerSection ? " active" : ""}" data-master-section="customers">客先</button>
+        <button type="button" class="master-subtab${groupSection ? " active" : ""}" data-master-section="groups">グループ</button>
+        <button type="button" class="master-subtab${itemSection ? " active" : ""}" data-master-section="items">品目</button>
+      </div>` : ""}
+      ${body}
+    </div>`;
+}
+
+function renderMasterForm() {
+  const f = state.masterForm;
+  if (!f) return "";
+  if (f.kind === "group") {
+    const title = f.mode === "add" ? "グループを追加" : "グループを編集";
+    return `
+    <div class="detail-overlay" id="master-form-overlay">
+      <div class="master-form-panel">
+        <h3>${title}</h3>
+        <label class="lbl">グループ名</label>
+        <input type="text" id="master-form-name" value="${esc(f.name)}" placeholder="例：医療 / 飲食 / 法人">
+        <p style="font-size:11px;color:#888;margin:-4px 0 10px">名前を変えると、所属する客先もまとめて更新されます</p>
+        <div class="master-form-actions">
+          <button type="button" class="btn btn-ghost" id="master-form-cancel" style="background:#f4f3ef;color:#1a1a2e">キャンセル</button>
+          <button type="button" class="btn btn-primary" id="master-form-save">保存</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  const isCustomer = f.kind === "customer";
+  const isItemAdd = !isCustomer && f.mode === "add";
+  const title = isCustomer
+    ? (f.mode === "add" ? "客先を追加" : "客先を編集")
+    : (f.mode === "add" ? "品目を追加" : "品目を編集");
+  const groupOpts = existingCustomerGroups()
+    .map(g => `<option value="${esc(g)}"></option>`)
+    .join("");
+  const custName = f.customer || state.masterCustomer;
+  const formHits = isItemAdd
+    ? searchItemsForMasterAdd(custName, f.searchQuery || "", f.searchKana || "all")
+    : [];
+  const formHasFilter = !!(String(f.searchQuery || "").trim() || (f.searchKana && f.searchKana !== "all" && f.searchKana !== ""));
+  const formHitRows = formHits.length
+    ? formHits.map((h, i) => `
+      <button type="button" class="item-add-hit" data-master-pick="${i}">
+        <div>
+          <div class="item-add-hit-title">${esc(h.name)}</div>
+          <div class="item-add-hit-meta">${h.yomi ? `読み ${esc(h.yomi)} · ` : ""}${h.code ? `コード ${esc(h.code)} · ` : ""}${h.fromCustomer ? esc(h.fromCustomer) : ""}</div>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:#0288D1">使う</span>
+      </button>`).join("")
+    : (isItemAdd
+      ? `<div class="empty" style="padding:14px">${formHasFilter ? "該当なし（この客先に無い品目のみ表示）" : "あ行を選ぶかキーワードを入力 → 既存品目をコピーできます"}</div>`
+      : "");
+  const kanaOpts = KANA_ROW_OPTIONS.filter(r => r.key !== "").map(r =>
+    `<option value="${esc(r.key)}" ${(f.searchKana || "all") === r.key ? "selected" : ""}>${esc(r.label)}</option>`
+  ).join("");
+  return `
+    <div class="detail-overlay" id="master-form-overlay">
+      <div class="master-form-panel">
+        <h3>${title}</h3>
+        ${!isCustomer ? `<p style="font-size:13px;color:#666;margin-bottom:10px">客先：${esc(custName)}</p>` : ""}
+        ${isItemAdd ? `
+        <div style="background:#f7fafc;border:1px solid #e2eef6;border-radius:10px;padding:10px 12px;margin-bottom:14px">
+          <div class="lbl" style="margin-bottom:6px">既存マスタから探す</div>
+          <div style="display:grid;grid-template-columns:120px 1fr;gap:8px">
+            <div>
+              <label class="lbl">行</label>
+              <select id="master-form-search-kana">${kanaOpts}</select>
+            </div>
+            <div>
+              <label class="lbl">キーワード</label>
+              <input type="text" id="master-form-search-query" value="${esc(f.searchQuery || "")}" placeholder="品名・読み・コード">
+            </div>
+          </div>
+          <div class="master-form-search-list">${formHitRows}</div>
+        </div>
+        <p style="font-size:12px;font-weight:700;color:#555;margin:0 0 8px">または手入力で新規登録</p>
+        ` : ""}
+        <label class="lbl">${isCustomer ? "客先名" : "品名"}</label>
+        <input type="text" id="master-form-name" value="${esc(f.name)}" placeholder="${isCustomer ? "例：客先A" : "例：作業着（上）"}">
+        ${isCustomer ? `<label class="lbl">グループ（任意）</label>
+        <input type="text" id="master-form-group" list="master-group-list" value="${esc(f.group || "")}" placeholder="例：医療 / 飲食 / 法人">
+        <datalist id="master-group-list">${groupOpts}</datalist>
+        <p style="font-size:11px;color:#888;margin:-4px 0 10px">グループタブで追加・改名もできます</p>` : ""}
+        ${!isCustomer ? `
+        <label class="lbl">読み仮名（あ行検索用）</label>
+        <input type="text" id="master-form-yomi" value="${esc(f.yomi || "")}" placeholder="例：さぎょうぎうえ" inputmode="kana">
+        <p style="font-size:11px;color:#888;margin:-4px 0 10px">ひらがな・カタカナどちらでも可。漢字品名の行分けに使います</p>
+        <label class="lbl">コード（N始まり）</label>
+        <input type="text" id="master-form-code" value="${esc(f.code)}" placeholder="例：N001">` : ""}
+        <div class="master-form-actions">
+          <button type="button" class="btn btn-ghost" id="master-form-cancel" style="background:#f4f3ef;color:#1a1a2e">キャンセル</button>
+          <button type="button" class="btn btn-primary" id="master-form-save">保存</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderDetail(ledger) {
+  const rows = ledger.items
+    .filter(it => it.inQty > 0 || it.outQty > 0)
+    .map(it => `<tr><td>${esc(it.name)}</td><td class="num">${it.inQty || "—"}</td><td class="num">${it.outQty || "—"}</td></tr>`)
+    .join("");
+  return `
+    <div class="detail-overlay" id="detail-overlay">
+      <div class="detail-panel">
+        <h2>${esc(ledger.customer)}</h2>
+        <p style="font-size:13px;color:#666">${fmtDate(ledger.deliveryDate)} · 保存 ${fmtDate(ledger.createdAt)} ${fmtTime(ledger.createdAt)}</p>
+        <table class="detail-table"><thead><tr><th>品名</th><th>入</th><th>出</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="memo-actions">
+          <button class="btn btn-ghost" id="detail-memo" style="background:#f0ebff;color:#5b4b8a">伝票入力メモ</button>
+          <button class="btn btn-primary" id="detail-close">閉じる</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+}
+
+function render() {
+  if (!isActiveSession()) return;
+  applyDeviceLayout();
+  const showNumpad = state.tab === 0;
+  const focusLabel = state.focus
+    ? `${state.items[state.focus.index]?.name || ""} の「${state.focus.field === "in" ? "入" : "出"}」`
+    : "";
+  const numpadHint = focusLabel
+    ? `入力中：<strong>${esc(focusLabel)}</strong>`
+    : "入または出をタップしてください";
+
+  document.getElementById("root").innerHTML = `
+    <div class="app">
+      ${IS_DEMO ? `<div class="demo-banner">⚠ お試し（デモ）環境です。伝票デモとマスタ連動中・この端末のみ。</div>` : ""}
+      <header class="header">
+        <div class="header-brand"><h1>${IS_DEMO ? "【デモ】入出荷台帳" : "入出荷台帳"}</h1><div class="header-sub">${esc(sessionLabel())}</div></div>
+        <nav class="header-tabs" aria-label="画面切替">
+          <button type="button" class="header-tab${state.tab === 0 ? " active" : ""}" data-tab="0">入力</button>
+          <button type="button" class="header-tab${state.tab === 1 ? " active" : ""}" data-tab="1">履歴${state.ledgers.length ? ` (${state.ledgers.length})` : ""}</button>
+          <button type="button" class="header-tab${state.tab === 2 ? " active" : ""}" data-tab="2">マスタ</button>
+        </nav>
+        <div class="header-actions">
+          <div class="col-mode-controls${state.tab === 0 ? "" : " hidden"}">
+            ${ITEM_COLS_OPTIONS.map(c =>
+              `<button type="button" class="btn btn-ghost btn-col-mode${state.itemCols === c ? " active" : ""}" data-cols="${c}">${c}列</button>`
+            ).join("")}
+          </div>
+          <div class="zoom-controls${state.tab === 0 ? "" : " hidden"}">
+            <button type="button" class="btn btn-ghost btn-zoom" id="btn-zoom-out" aria-label="品目を縮小" ${state.itemZoom <= ZOOM_MIN ? "disabled" : ""}>−</button>
+            <span class="zoom-label">${Math.round(state.itemZoom * 100)}%</span>
+            <button type="button" class="btn btn-ghost btn-zoom" id="btn-zoom-in" aria-label="品目を拡大" ${state.itemZoom >= ZOOM_MAX ? "disabled" : ""}>＋</button>
+          </div>
+          <a class="btn btn-ghost" id="btn-guide" href="./guide.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">ガイド</a>
+          <button type="button" class="btn btn-ghost install-btn hidden" id="btn-install">インストール</button>
+          ${USE_LOCAL_DEMO && state.demoMode ? "" : `<button class="btn btn-ghost" id="btn-logout">${state.demoMode ? "終了" : "業務終了"}</button>`}
+        </div>
+      </header>
+      <div class="workspace">
+        <main class="main">
+          ${state.loading ? `<div class="empty">読込中…</div>` : state.tab === 0 ? renderInputTab() : `<div class="main-scroll">${state.tab === 1 ? renderHistoryTab() : renderMasterTab()}</div>`}
+        </main>
+        <aside class="numpad-wrap${showNumpad ? "" : " hidden"}${state.focus ? "" : " disabled"}" aria-label="テンキー">
+          <div class="sidebar-actions">
+            <button class="btn btn-primary" id="btn-save">完了して保存</button>
+            <button type="button" class="btn btn-issue" id="btn-issue" title="${IS_DEMO ? "伝票デモへ「出」数量を渡します" : "伝票アプリとの連動は準備中です"}">
+              伝票を発行${IS_DEMO ? "" : `<span class="soon">準備中</span>`}
+            </button>
+            <button class="btn btn-memo" id="btn-memo">伝票入力メモ</button>
+          </div>
+          <div class="numpad-target">${numpadHint}</div>
+          <div class="numpad">
+            ${["7","8","9","4","5","6","1","2","3"].map(n => `<button type="button" class="nk" data-k="${n}">${n}</button>`).join("")}
+            <button type="button" class="nk del" data-k="del">DEL</button>
+            <button type="button" class="nk" data-k="0">0</button>
+            <button type="button" class="nk enter" data-k="enter">ENTER</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+    ${state.detail ? renderDetail(state.detail) : ""}
+    ${state.invoiceMemo ? renderInvoiceMemo(state.invoiceMemo) : ""}
+    ${state.masterForm ? renderMasterForm() : ""}
+    ${state.itemAddOpen ? renderItemAddPanel() : ""}`;
+
+  document.querySelectorAll(".header-tab").forEach(btn => {
+    btn.onclick = async () => {
+      state.tab = +btn.dataset.tab;
+      state.focus = null;
+      state.masterForm = null;
+      state.itemAddOpen = false;
+      if (state.tab === 1 && !state.demoMode && !state.loading) {
+        try { await loadLedgersFromCloud(); } catch {}
+      }
+      if (state.tab === 2) {
+        if (!canMasterFullEdit()) state.masterSection = "items";
+        if (!state.masterCustomer && state.customers.length) state.masterCustomer = state.customers[0].name;
+      }
+      render();
+    };
+  });
+  const logoutBtn = document.getElementById("btn-logout");
+  if (logoutBtn) {
+    logoutBtn.onclick = async () => {
+      if (state.demoMode) {
+        state.demoMode = false;
+        state.customer = "";
+        state.items = [];
+        renderLogin();
+      } else {
+        await endWorkDay();
+      }
+    };
+  }
+
+  const zoomOut = document.getElementById("btn-zoom-out");
+  const zoomIn = document.getElementById("btn-zoom-in");
+  document.querySelectorAll(".btn-col-mode").forEach(btn => {
+    btn.onclick = () => setItemCols(+btn.dataset.cols);
+  });
+  if (zoomOut) zoomOut.onclick = () => setItemZoom(state.itemZoom - ZOOM_STEP);
+  if (zoomIn) zoomIn.onclick = () => setItemZoom(state.itemZoom + ZOOM_STEP);
+
+  if (state.tab === 0 && !state.loading) {
+    const sel = document.getElementById("cust-select");
+    if (sel) sel.onchange = e => selectCustomer(e.target.value);
+    const dt = document.getElementById("delivery-date");
+    if (dt) dt.onchange = e => { state.deliveryDate = e.target.value; };
+    if (!state.deliveryDate) state.deliveryDate = dt?.value || todayInput();
+
+    document.querySelectorAll(".qty-cell").forEach(el => {
+      el.onclick = () => setFocus(+el.dataset.i, el.dataset.f);
+    });
+    document.querySelectorAll("[data-remove-item]").forEach(btn => {
+      btn.onclick = e => {
+        e.stopPropagation();
+        removeInputItem(+btn.dataset.removeItem);
+      };
+    });
+    const itemAddBtn = document.getElementById("btn-item-add");
+    if (itemAddBtn) itemAddBtn.onclick = () => openItemAdd("free");
+
+    const scrollEl = document.getElementById("items-scroll");
+    const scrollUp = document.getElementById("scroll-up");
+    const scrollDown = document.getElementById("scroll-down");
+    if (scrollEl && scrollUp && scrollDown) {
+      const scrollStep = () => Math.max(120, scrollEl.clientHeight * 0.55);
+      scrollUp.onclick = () => scrollEl.scrollBy({ top: -scrollStep(), behavior: "smooth" });
+      scrollDown.onclick = () => scrollEl.scrollBy({ top: scrollStep(), behavior: "smooth" });
+    }
+    requestAnimationFrame(() => applyItemColLayout());
+  }
+
+  const itemAddOverlay = document.getElementById("item-add-overlay");
+  if (itemAddOverlay) {
+    itemAddOverlay.onclick = e => { if (e.target === itemAddOverlay) closeItemAdd(); };
+    document.querySelectorAll("[data-item-add-tab]").forEach(btn => {
+      btn.onclick = () => {
+        state.itemAddTab = btn.dataset.itemAddTab;
+        render();
+      };
+    });
+    const cancel = document.getElementById("item-add-cancel");
+    if (cancel) cancel.onclick = () => closeItemAdd();
+    const toMaster = document.getElementById("item-add-to-master");
+    if (toMaster) toMaster.onchange = e => { state.itemAddToMaster = e.target.checked; };
+    const nameInput = document.getElementById("item-add-name");
+    if (nameInput) {
+      nameInput.oninput = e => { state.itemAddName = e.target.value; };
+      nameInput.onkeydown = e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addItemToInput(nameInput.value, {
+            toMaster: state.itemAddToMaster,
+            yomi: document.getElementById("item-add-yomi")?.value || ""
+          });
+        }
+      };
+    }
+    const yomiInput = document.getElementById("item-add-yomi");
+    if (yomiInput) yomiInput.oninput = e => { state.itemAddYomi = e.target.value; };
+    const saveFree = document.getElementById("item-add-save");
+    if (saveFree) {
+      saveFree.onclick = () => addItemToInput(
+        document.getElementById("item-add-name")?.value || "",
+        {
+          toMaster: state.itemAddToMaster,
+          yomi: document.getElementById("item-add-yomi")?.value || ""
+        }
+      );
+    }
+    const kanaSelect = document.getElementById("item-add-kana");
+    if (kanaSelect) {
+      kanaSelect.onchange = e => {
+        state.itemAddKanaRow = e.target.value;
+        render();
+      };
+    }
+    const queryInput = document.getElementById("item-add-query");
+    if (queryInput) {
+      queryInput.oninput = e => {
+        state.itemAddQuery = e.target.value;
+        render();
+        const q = document.getElementById("item-add-query");
+        if (q) {
+          q.focus();
+          const len = q.value.length;
+          q.setSelectionRange(len, len);
+        }
+      };
+    }
+    const hits = searchMasterItems(state.itemAddQuery, state.itemAddKanaRow);
+    document.querySelectorAll("[data-add-hit]").forEach(btn => {
+      btn.onclick = () => {
+        const hit = hits[+btn.dataset.addHit];
+        if (!hit) return;
+        addItemToInput(hit.name, { code: hit.code, toMaster: state.itemAddToMaster, yomi: hit.yomi });
+      };
+    });
+  }
+
+  const saveBtn = document.getElementById("btn-save");
+  const issueBtn = document.getElementById("btn-issue");
+  const memoBtn = document.getElementById("btn-memo");
+  if (saveBtn) saveBtn.onclick = saveLedger;
+  if (issueBtn) {
+    issueBtn.onclick = issueToSlipDemo;
+  }
+  if (memoBtn) memoBtn.onclick = showMemoFromForm;
+
+  if (state.tab === 1) {
+    const refreshBtn = document.getElementById("btn-refresh-history");
+    if (refreshBtn) refreshBtn.onclick = async () => {
+      if (state.demoMode) { render(); return; }
+      try {
+        await loadLedgersFromCloud();
+        toast("履歴を更新しました");
+      } catch { toast("更新に失敗しました", "error"); }
+      render();
+    };
+    document.querySelectorAll(".history-row").forEach(el => {
+      el.onclick = () => {
+        const id = +el.dataset.id;
+        state.detail = state.ledgers.find(l => l.id === id) || null;
+        render();
+      };
+    });
+  }
+
+  if (state.tab === 2) {
+    document.querySelectorAll("[data-master-section]").forEach(btn => {
+      btn.onclick = () => {
+        state.masterSection = btn.dataset.masterSection;
+        render();
+      };
+    });
+    const addCust = document.getElementById("master-add-customer");
+    if (addCust) addCust.onclick = () => openMasterCustomerForm("add");
+    const sortCust = document.getElementById("master-sort-customers");
+    if (sortCust) sortCust.onclick = () => sortCustomersByName();
+    document.querySelectorAll("[data-master-customer-name]").forEach(btn => {
+      btn.onclick = () => openMasterCustomerForm("edit", btn.dataset.masterCustomerName);
+    });
+    document.querySelectorAll("[data-master-del-customer-name]").forEach(btn => {
+      btn.onclick = () => deleteMasterCustomer(btn.dataset.masterDelCustomerName);
+    });
+    document.querySelectorAll("[data-master-move]").forEach(btn => {
+      btn.onclick = () => moveCustomer(btn.dataset.masterMove, +btn.dataset.dir);
+    });
+    const addGroup = document.getElementById("master-add-group");
+    if (addGroup) addGroup.onclick = () => openMasterGroupForm("add");
+    document.querySelectorAll("[data-group-edit]").forEach(btn => {
+      btn.onclick = () => openMasterGroupForm("edit", btn.dataset.groupEdit);
+    });
+    document.querySelectorAll("[data-group-del]").forEach(btn => {
+      btn.onclick = () => deleteMasterGroup(btn.dataset.groupDel);
+    });
+    document.querySelectorAll("[data-group-move]").forEach(btn => {
+      btn.onclick = () => moveGroup(btn.dataset.groupMove, +btn.dataset.dir);
+    });
+    const masterSel = document.getElementById("master-cust-select");
+    if (masterSel) masterSel.onchange = e => {
+      state.masterCustomer = e.target.value;
+      state.masterItemQuery = "";
+      state.masterItemKanaRow = "all";
+      render();
+    };
+    const masterKana = document.getElementById("master-item-kana");
+    if (masterKana) masterKana.onchange = e => {
+      state.masterItemKanaRow = e.target.value;
+      render();
+    };
+    const masterQuery = document.getElementById("master-item-query");
+    if (masterQuery) {
+      masterQuery.oninput = e => {
+        state.masterItemQuery = e.target.value;
+        render();
+        const q = document.getElementById("master-item-query");
+        if (q) {
+          q.focus();
+          const len = q.value.length;
+          q.setSelectionRange(len, len);
+        }
+      };
+    }
+    document.querySelectorAll("[data-master-cols]").forEach(btn => {
+      btn.onclick = () => setMasterItemCols(+btn.dataset.masterCols);
+    });
+    const mzOut = document.getElementById("master-zoom-out");
+    const mzIn = document.getElementById("master-zoom-in");
+    if (mzOut) mzOut.onclick = () => setMasterItemZoom(state.masterItemZoom - ZOOM_STEP);
+    if (mzIn) mzIn.onclick = () => setMasterItemZoom(state.masterItemZoom + ZOOM_STEP);
+    const addItem = document.getElementById("master-add-item");
+    if (addItem) addItem.onclick = () => openMasterItemForm("add", state.masterCustomer);
+    document.querySelectorAll("[data-master-edit-item]").forEach(btn => {
+      btn.onclick = () => openMasterItemForm("edit", state.masterCustomer, +btn.dataset.masterEditItem);
+    });
+    document.querySelectorAll("[data-master-del-item]").forEach(btn => {
+      btn.onclick = () => deleteMasterItem(state.masterCustomer, +btn.dataset.masterDelItem);
+    });
+  }
+
+  const masterSave = document.getElementById("master-form-save");
+  const masterCancel = document.getElementById("master-form-cancel");
+  const masterOverlay = document.getElementById("master-form-overlay");
+  if (masterSave) masterSave.onclick = () => submitMasterForm();
+  if (masterCancel) masterCancel.onclick = () => { state.masterForm = null; render(); };
+  if (masterOverlay) masterOverlay.onclick = e => { if (e.target === masterOverlay) { state.masterForm = null; render(); } };
+  const masterNameInput = document.getElementById("master-form-name");
+  if (masterNameInput) {
+    masterNameInput.oninput = e => {
+      if (state.masterForm) state.masterForm.name = e.target.value;
+    };
+    masterNameInput.onkeydown = e => { if (e.key === "Enter") submitMasterForm(); };
+  }
+  const masterYomiInput = document.getElementById("master-form-yomi");
+  if (masterYomiInput) {
+    masterYomiInput.oninput = e => {
+      if (state.masterForm) state.masterForm.yomi = e.target.value;
+    };
+  }
+  const masterCodeInput = document.getElementById("master-form-code");
+  if (masterCodeInput) {
+    masterCodeInput.oninput = e => {
+      if (state.masterForm) state.masterForm.code = e.target.value;
+    };
+  }
+  const formSearchKana = document.getElementById("master-form-search-kana");
+  if (formSearchKana && state.masterForm) {
+    formSearchKana.onchange = e => {
+      state.masterForm.searchKana = e.target.value;
+      render();
+    };
+  }
+  const formSearchQuery = document.getElementById("master-form-search-query");
+  if (formSearchQuery && state.masterForm) {
+    formSearchQuery.oninput = e => {
+      state.masterForm.searchQuery = e.target.value;
+      render();
+      const q = document.getElementById("master-form-search-query");
+      if (q) {
+        q.focus();
+        const len = q.value.length;
+        q.setSelectionRange(len, len);
+      }
+    };
+  }
+  if (state.masterForm?.kind === "item" && state.masterForm.mode === "add") {
+    const custName = state.masterForm.customer || state.masterCustomer;
+    const formHits = searchItemsForMasterAdd(
+      custName,
+      state.masterForm.searchQuery || "",
+      state.masterForm.searchKana || "all"
+    );
+    document.querySelectorAll("[data-master-pick]").forEach(btn => {
+      btn.onclick = () => {
+        const hit = formHits[+btn.dataset.masterPick];
+        if (!hit || !state.masterForm) return;
+        state.masterForm.name = hit.name;
+        state.masterForm.yomi = hit.yomi || "";
+        toast("既存品目をコピーしました。保存でこの客先に登録できます");
+        render();
+      };
+    });
+  }
+
+  document.querySelectorAll(".nk").forEach(btn => {
+    btn.onclick = () => numpadPress(btn.dataset.k);
+  });
+
+  const closeBtn = document.getElementById("detail-close");
+  if (closeBtn) closeBtn.onclick = () => { state.detail = null; render(); };
+  const detailMemoBtn = document.getElementById("detail-memo");
+  if (detailMemoBtn) detailMemoBtn.onclick = () => showInvoiceMemo(state.detail);
+  const overlay = document.getElementById("detail-overlay");
+  if (overlay) overlay.onclick = e => { if (e.target === overlay) { state.detail = null; render(); } };
+
+  const memoClose = document.getElementById("memo-close");
+  if (memoClose) memoClose.onclick = () => { state.invoiceMemo = null; render(); };
+  const memoOverlay = document.getElementById("memo-overlay");
+  if (memoOverlay) memoOverlay.onclick = e => { if (e.target === memoOverlay) { state.invoiceMemo = null; render(); } };
+  bindInstallButtons();
+}
+
+function startDemoMode() {
+  state.demoMode = true;
+  window.bootApp();
+}
+
+window.bootApp = async function() {
+  if (!state.deliveryDate) state.deliveryDate = todayInput();
+  await loadMasters();
+  registerServiceWorkerLater();
+};
+
+async function startApp() {
+  for (const mode of [indexedDBLocalPersistence, browserLocalPersistence, inMemoryPersistence]) {
+    try {
+      await setPersistence(auth, mode);
+      break;
+    } catch {}
+  }
+  onAuthStateChanged(auth, async user => {
+    if (USE_LOCAL_DEMO) {
+      startDemoMode();
+      return;
+    }
+    if (user) {
+      const saved = localStorage.getItem(SESSION_DAY_KEY);
+      const today = sessionDayKey();
+      if (saved && saved !== today) {
+        await signOut(auth);
+        clearSessionDay();
+        state.userShortId = "";
+        state.userDisplayName = "";
+        renderLogin("日付が変わりました。朝いちどログインしてください。");
+        return;
+      }
+      if (!state.userDisplayName && !state.userShortId) {
+        await loadUserProfile(user.uid);
+      }
+      markSessionDay();
+      state.demoMode = false;
+      window.bootApp();
+    } else {
+      renderLogin();
+    }
+  }, err => {
+    console.error(err);
+    if (USE_LOCAL_DEMO) {
+      startDemoMode();
+      return;
+    }
+    renderLogin("接続エラーです。ネットワークを確認して再試行してください。");
+  });
+}
+
+if (IS_DEMO) {
+  window.addEventListener("storage", e => {
+    if (e.key !== BRIDGE_V14_KEY && e.key !== BRIDGE_REV_KEY) return;
+    const pulled = pullMastersFromSlipBridge();
+    if (pulled !== true) return;
+    if (state.customer) loadCustomerItems(state.customer);
+    if (state.masterCustomer) {
+      /* keep */
+    }
+    render();
+    toast("伝票デモのマスタを反映しました");
+  });
+}
+
+startApp().catch(err => {
+  console.error(err);
+  if (USE_LOCAL_DEMO) {
+    startDemoMode();
+    return;
+  }
+  renderLogin("起動に失敗しました。アプリを削除して再インストールしてください。");
+});
+
+window.addEventListener("error", e => {
+  const root = document.getElementById("root");
+  if (!root) return;
+  root.innerHTML = `<div class="login-wrap"><div class="login-card"><h1>入出荷台帳</h1><p style="color:#c62828">起動エラーが発生しました。</p><p style="font-size:13px;margin-top:12px;line-height:1.6">① ホーム画面のアイコンを削除<br>② ブラウザでこのページを開き直す<br>③ 再インストール</p></div></div>`;
+});
+</script>
+</body>
+</html>
